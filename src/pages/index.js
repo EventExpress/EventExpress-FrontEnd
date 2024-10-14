@@ -1,47 +1,21 @@
-// src/pages/paginicial.js
+// src/pages/index.js
 import React, { useEffect, useState } from 'react';
 import NavBar from '../components/NavBar';
 import { useSession } from 'next-auth/react';
 
-const Paginicial = () => {
+const HomePage = () => {
     const { data: session } = useSession();
     const [anuncios, setAnuncios] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchAnuncios = async () => {
-            setLoading(true);
-            setError(null); // Resetar erro antes da requisição
-
-            try {
-                // Supondo que o token esteja armazenado em localStorage ou cookie
-                const token = session?.user?.token; // Altere essa linha conforme necessário para obter o token
-
-                const response = await fetch('http://localhost:8000/api/anuncios', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`, // Adicionando cabeçalho de autorização
-                        'Content-Type': 'application/json',
-                    },
-                });
-
-                if (!response.ok) {
-                    throw new Error('Erro ao buscar anúncios: ' + response.statusText);
-                }
-
-                const data = await response.json();
-                setAnuncios(data);
-            } catch (error) {
-                setError(error.message);
-                console.error('Erro ao buscar anúncios:', error);
-            } finally {
-                setLoading(false);
-            }
+            const response = await fetch('/api/anuncios'); // Ajuste a URL conforme sua API
+            const data = await response.json();
+            setAnuncios(data);
         };
 
         fetchAnuncios();
-    }, [session]); 
+    }, []);
 
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
@@ -51,18 +25,12 @@ const Paginicial = () => {
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <h1 className="text-2xl font-semibold mb-4 text-orange-500">Anúncios</h1>
 
-                        {loading && <p className="text-gray-700 dark:text-gray-300">Carregando anúncios...</p>}
-
-                        {error && <p className="text-red-500">{error}</p>}
-
                         {anuncios.length > 0 ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                                 {anuncios.map(anuncio => (
                                     <div key={anuncio.id} className="bg-white dark:bg-gray-200 rounded-lg shadow-md p-4 transition-transform transform hover:scale-105">
                                         <h2 className="text-gray-900 dark:text-gray-100 font-semibold text-lg">{anuncio.titulo}</h2>
-                                        <p className="text-gray-600 dark:text-gray-400">
-                                            {anuncio.endereco.cidade}, CEP: {anuncio.endereco.cep}, Número: {anuncio.endereco.numero}, {anuncio.endereco.bairro}
-                                        </p>
+                                        <p className="text-gray-600 dark:text-gray-400">{anuncio.endereco.cidade}, CEP: {anuncio.endereco.cep}, Número: {anuncio.endereco.numero}, {anuncio.endereco.bairro}</p>
                                         <p className="text-gray-700 dark:text-gray-300">Capacidade: {anuncio.capacidade}</p>
                                         <p className="text-gray-700 dark:text-gray-300">{anuncio.descricao}</p>
                                         <p className="text-gray-700 dark:text-gray-300">Locador: {anuncio.usuario.nome}</p>
@@ -74,7 +42,7 @@ const Paginicial = () => {
                                 ))}
                             </div>
                         ) : (
-                            !loading && <p className="text-gray-700 dark:text-gray-300">Não possui nenhum anúncio.</p>
+                            <p className="text-gray-700 dark:text-gray-300">Não possui nenhum anúncio.</p>
                         )}
                     </div>
                 </div>
@@ -83,4 +51,4 @@ const Paginicial = () => {
     );
 };
 
-export default Paginicial;
+export default HomePage;
