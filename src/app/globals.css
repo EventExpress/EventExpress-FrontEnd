@@ -5,6 +5,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --orange: #ff7f50; /* Adicionando uma variável para a cor laranja */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -20,8 +21,34 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+input,
+textarea {
+  border: 1px solid #e5e7eb; /* Cor da borda padrão */
+  border-radius: 0.375rem; /* Bordas arredondadas */
+  padding: 0.5rem; /* Espaçamento interno */
+  transition: border-color 0.2s ease; /* Transição suave na mudança de cor */
+}
+
+input:focus,
+textarea:focus {
+  border-color: var(--orange); /* Cor da borda quando em foco */
+  outline: none; /* Remove a borda padrão do foco */
+}
+
+button {
+  background-color: var(--orange); /* Cor de fundo padrão */
+  color: white; /* Cor do texto do botão */
+  padding: 0.5rem 1rem; /* Espaçamento interno do botão */
+  border-radius: 0.375rem; /* Bordas arredondadas */
+  transition: background-color 0.2s ease; /* Transição suave no hover */
+}
+
+button:hover {
+  background-color: darken(var(--orange), 10%); /* Escurece a cor no hover */
+}
+
 @layer utilities {
   .text-balance {
-    text-wrap: balance;
+    text-wrap: balance; /* Utilidade personalizada */
   }
 }

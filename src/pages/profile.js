@@ -1,9 +1,28 @@
 // pages/profile.js
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
+import NavBar from '../components/NavBar'; // Verifique se o caminho está correto
+import ProfileForm from '../components/ProfileForm'; // Novo componente
+import PasswordUpdateForm from '../components/PasswordUpdateForm'; // Novo componente
+import DeleteAccount from '../components/DeleteAccount'; // Novo componente
 
 const ProfilePage = () => {
-    const [userData, setUserData] = useState(null);
+    const [userData, setUserData] = useState({
+        nome: '',
+        sobrenome: '',
+        email: '',
+        telefone: '',
+        datanasc: '',
+        tipousu: 'Locatário',
+        cpf: '',
+        cnpj: '',
+        endereco: {
+            cidade: '',
+            cep: '',
+            numero: '',
+            bairro: '',
+        },
+    });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const router = useRouter();
@@ -31,9 +50,8 @@ const ProfilePage = () => {
                 }
 
                 const data = await response.json();
-                console.log('Dados do usuário:', data); // Log para verificar os dados
                 if (data.status) {
-                    setUserData(data.user); // Acesse o campo 'user'
+                    setUserData(data.user);
                 } else {
                     throw new Error('Usuário não encontrado');
                 }
@@ -47,68 +65,19 @@ const ProfilePage = () => {
         fetchUserData();
     }, [router]);
 
-    const handleLogout = async () => {
-        const token = localStorage.getItem('auth_token');
-        if (!token) {
-            router.push('/login');
-            return;
-        }
-
-        try {
-            const response = await fetch(`http://localhost:8000/api/user/logout`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Erro ao fazer logout:', errorText);
-                throw new Error('Erro ao fazer logout');
-            }
-
-            localStorage.removeItem('auth_token'); // Remove o token do localStorage
-            router.push('/login'); // Redireciona para a página de login
-        } catch (error) {
-            console.error('Erro na requisição de logout:', error);
-        }
-    };
-
-    if (loading) return <p>Loading...</p>;
-    if (error) return <p>{error}</p>;
-    if (!userData) return <p>No user data found.</p>;
+    if (loading) return <div className="loading">Carregando...</div>;
+    if (error) return <div className="error">Erro: {error}</div>;
 
     return (
-        <div className="bg-gray-700 p-8 rounded-lg shadow-lg max-w-md mx-auto">
-            <h1 className="text-orange-500 text-2xl">Perfil do Usuário</h1>
-            <div className="mt-4">
-                <p><strong>ID:</strong> {userData.id}</p>
-                <p><strong>Nome:</strong> {userData.nome}</p>
-                <p><strong>Sobrenome:</strong> {userData.sobrenome}</p>
-                <p><strong>Email:</strong> {userData.email}</p>
-                <p><strong>Telefone:</strong> {userData.telefone}</p>
-                <p><strong>Data de Nascimento:</strong> {userData.datanasc}</p>
-                <p><strong>CPF:</strong> {userData.cpf}</p>
-                <p><strong>CNPJ:</strong> {userData.cnpj}</p>
-                <p><strong>Endereço:</strong></p>
-                <ul>
-                    <li><strong>Cidade:</strong> {userData.endereco?.cidade || 'N/A'}</li>
-                    <li><strong>CEP:</strong> {userData.endereco?.cep || 'N/A'}</li>
-                    <li><strong>Número:</strong> {userData.endereco?.numero || 'N/A'}</li>
-                    <li><strong>Bairro:</strong> {userData.endereco?.bairro || 'N/A'}</li>
-                </ul>
-                <p><strong>Tipo de Usuário:</strong> {userData.type_users?.map(type => type.tipousu).join(', ') || 'N/A'}</p>
-                <p><strong>Data de Criação:</strong> {userData.created_at}</p>
-                <p><strong>Última Atualização:</strong> {userData.updated_at}</p>
-            </div>
-            <button 
-                onClick={handleLogout} 
-                className="mt-6 bg-red-500 text-white py-2 px-4 rounded-md"
-            >
-                Sair
-            </button>
-        </div>
+        <>
+            <NavBar />
+            <section className="mx-auto mt-10 max-w-7xl w-full md:w-3/4 lg:w-2/3 xl:w-1/2">
+                <h1 className="text-3xl font-semibold text-orange-400">Meu Perfil</h1>
+                <ProfileForm userData={userData} setUserData={setUserData} />
+                <PasswordUpdateForm />
+                <DeleteAccount />
+            </section>
+        </>
     );
 };
 

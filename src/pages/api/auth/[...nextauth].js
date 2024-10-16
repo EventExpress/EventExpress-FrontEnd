@@ -13,7 +13,7 @@ export default NextAuth({
                 password: { label: "Password", type: "password" },
             },
             async authorize(credentials) {
-                const res = await fetch("http://localhost:8000/api/login", { // Altere para o seu endpoint de login
+                const res = await fetch("http://localhost:8000/api/login", { 
                     method: "POST",
                     body: JSON.stringify({
                         email: credentials.email,
@@ -24,7 +24,6 @@ export default NextAuth({
 
                 const user = await res.json();
 
-                // Verifique se a resposta é bem-sucedida
                 if (!res.ok || !user || !user.data) {
                     return null; // Retorne null se não houver usuário
                 }
