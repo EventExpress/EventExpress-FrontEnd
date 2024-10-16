@@ -12,10 +12,9 @@ const Paginicial = () => {
     useEffect(() => {
         const fetchAnuncios = async () => {
             setLoading(true);
-            setError(null); // Resetar erro antes da requisição
+            setError(null); 
 
             try {
-                // Supondo que o token esteja armazenado em localStorage ou cookie
                 const token = session?.user?.token; // Altere essa linha conforme necessário para obter o token
 
                 const response = await fetch('http://localhost:8000/api/anuncios', {

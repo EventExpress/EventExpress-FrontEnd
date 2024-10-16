@@ -23,6 +23,12 @@ const EditServico = () => {
     const [checkboxOpen, setCheckboxOpen] = useState(false);
 
     useEffect(() => {
+        // Verifica o tipo de usuário
+        const user = JSON.parse(localStorage.getItem('user')); // Supondo que você armazene o usuário em localStorage
+        if (!user || user.tipo !== 'Prestador') {
+            router.push('/'); // Redireciona se não for Prestador
+        }
+
         // Busque as categorias da API
         fetch('http://localhost:8000/api/categorias')
             .then((response) => response.json())
@@ -48,7 +54,7 @@ const EditServico = () => {
                 })
                 .catch((error) => console.error('Erro ao buscar serviço:', error));
         }
-    }, [id]);
+    }, [id, router]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;

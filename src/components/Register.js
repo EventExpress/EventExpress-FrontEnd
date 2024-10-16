@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/Button'; // Ajuste o caminho conforme necessário
 import ApplicationLogo from '@/components/ApplicationLogo'; // Importando a logo
+import Link from 'next/link'; // Importando o Link do Next.js
 import '@/app/globals.css';
 
 const RegisterPage = () => {
@@ -29,8 +30,11 @@ const RegisterPage = () => {
         const { name, value } = e.target;
 
         if (name === "tipousu") {
-            const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
-            setFormData({ ...formData, [name]: selectedOptions });
+            const newTipousu = formData.tipousu.includes(value)
+                ? formData.tipousu.filter((tip) => tip !== value)
+                : [...formData.tipousu, value];
+
+            setFormData({ ...formData, tipousu: newTipousu });
         } else {
             setFormData({ ...formData, [name]: value });
         }
@@ -134,21 +138,44 @@ const RegisterPage = () => {
                     />
                 </div>
 
+                {/* Seção de Tipo de Usuário com Checkboxes */}
                 <div className="mt-4">
-                    <label htmlFor="tipousu" className="block text-orange-500">Tipo de Usuário</label>
-                    <select
-                        id="tipousu"
-                        name="tipousu"
-                        value={formData.tipousu}
-                        onChange={handleChange}
-                        multiple
-                        required
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                    >
-                        <option value="Locatario">Locatario</option>
-                        <option value="Locador">Locador</option>
-                        <option value="Prestador">Prestador</option>
-                    </select>
+                    <label className="block text-orange-500">Tipo de Usuário</label>
+                    <div className="flex flex-col">
+                        <label className="inline-flex items-center mt-2">
+                            <input
+                                type="checkbox"
+                                name="tipousu"
+                                value="Locatario"
+                                checked={formData.tipousu.includes("Locatario")}
+                                onChange={handleChange}
+                                className="form-checkbox h-5 w-5 text-orange-600"
+                            />
+                            <span className="ml-2 text-white">Locatário</span>
+                        </label>
+                        <label className="inline-flex items-center mt-2">
+                            <input
+                                type="checkbox"
+                                name="tipousu"
+                                value="Locador"
+                                checked={formData.tipousu.includes("Locador")}
+                                onChange={handleChange}
+                                className="form-checkbox h-5 w-5 text-orange-600"
+                            />
+                            <span className="ml-2 text-white">Locador</span>
+                        </label>
+                        <label className="inline-flex items-center mt-2">
+                            <input
+                                type="checkbox"
+                                name="tipousu"
+                                value="Prestador"
+                                checked={formData.tipousu.includes("Prestador")}
+                                onChange={handleChange}
+                                className="form-checkbox h-5 w-5 text-orange-600"
+                            />
+                            <span className="ml-2 text-white">Prestador</span>
+                        </label>
+                    </div>
                 </div>
 
                 <div className="mt-4">
@@ -241,15 +268,17 @@ const RegisterPage = () => {
                     />
                 </div>
 
-                <Button type="submit" loading={isLoading} className="mt-4 bg-orange-500 text-white py-2 px-4 rounded-md w-full">
-                    Registrar
+                <Button type="submit" className="mt-6 w-full" disabled={isLoading}>
+                    {isLoading ? 'Registrando...' : 'Registrar'}
                 </Button>
 
-                <div className="flex items-center justify-end mt-4">
-                    <a className="underline text-sm text-orange-500 hover:text-gray-900" href="/login">
-                        Já está registrado?
-                    </a>
-                </div>
+                {/* Adicionando "Já possui cadastro?" abaixo do botão */}
+                <p className="mt-4 text-center text-white">
+                    Já possui cadastro?{' '}
+                    <Link href="/login" className="text-orange-500 underline">
+                        Faça login
+                    </Link>
+                </p>
             </form>
         </div>
     );

@@ -28,14 +28,14 @@ const NavBar = () => {
                         setUser(data);
                     } else {
                         console.error('Falha ao buscar usuário:', response.statusText);
-                        setUser(null); // Certifique-se de definir como null se falhar
+                        setUser(null);
                     }
                 } catch (error) {
                     console.error('Erro ao buscar usuário:', error);
-                    setUser(null); // Certifique-se de definir como null em caso de erro
+                    setUser(null);
                 }
             } else {
-                setUser(null); // Se não houver token, defina como null
+                setUser(null);
             }
             setLoading(false);
         };
@@ -68,9 +68,24 @@ const NavBar = () => {
                             <Link href="/" className="text-gray-900 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium">
                                 Início
                             </Link>
-                            {user && user.tipousu !== 'Locador' && (
-                                <Link href="/anuncio/create" className="text-gray-900 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium">
-                                    Criar Anúncio
+                            {user && user.tipousu === 'Locatário' && (
+                                <Link href="/reservas" className="text-gray-900 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium">
+                                    Minhas Reservas
+                                </Link>
+                            )}
+                            {user && user.tipousu === 'Locador' && (
+                                <>
+                                    <Link href="/meus-anuncios" className="text-gray-900 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium">
+                                        Meus Anúncios
+                                    </Link>
+                                    <Link href="/anuncio/create" className="text-gray-900 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium">
+                                        Criar Anúncio
+                                    </Link>
+                                </>
+                            )}
+                            {user && user.tipousu === 'Prestador' && (
+                                <Link href="/meus-servicos" className="text-gray-900 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium">
+                                    Meus Serviços
                                 </Link>
                             )}
                         </div>
@@ -108,10 +123,6 @@ const NavBar = () => {
                                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
                                         <div className="py-1">
                                             <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Meu Perfil</Link>
-                                            <Link href="/reservas" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Visualizar Reservas</Link>
-                                            {user.tipousu !== 'Locador' && (
-                                                <Link href="/meus-anuncios" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Meus Anúncios</Link>
-                                            )}
                                             <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                 Sair
                                             </button>
@@ -126,30 +137,6 @@ const NavBar = () => {
                             </div>
                         )}
                     </div>
-
-                    <div className="-mr-2 flex items-center sm:hidden">
-                        <button className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-gray-500 dark:focus:text-gray-400 transition duration-150 ease-in-out">
-                            <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                                <path className="inline-flex" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div className={`sm:hidden ${dropdownOpen ? 'block' : 'hidden'}`}>
-                <div className="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
-                    {user ? (
-                        <div className="px-4">
-                            <div className="font-medium text-base text-gray-800 dark:text-gray-200">{user.nome}</div>
-                            <div className="font-medium text-sm text-gray-500">{user.email}</div>
-                        </div>
-                    ) : (
-                        <div className="px-4">
-                            <Link href="/login" className="block bg-blue-500 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-blue-600 mb-2">Login</Link>
-                            <Link href="/register" className="block bg-green-500 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-green-600">Registrar</Link>
-                        </div>
-                    )}
                 </div>
             </div>
         </nav>

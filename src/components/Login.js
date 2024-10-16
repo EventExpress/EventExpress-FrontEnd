@@ -9,11 +9,13 @@ const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [remember, setRemember] = useState(false);
+    const [error, setError] = useState(''); // Estado para armazenar mensagens de erro
     const router = useRouter(); // Cria uma instância do roteador
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+        setError(''); // Reseta a mensagem de erro antes da nova tentativa
+
         try {
             const response = await fetch('http://localhost:8000/api/login', {
                 method: 'POST',
@@ -24,6 +26,13 @@ const LoginPage = () => {
             });
 
             if (!response.ok) {
+                const errorData = await response.json();
+                // Atualiza a mensagem de erro com base na resposta
+                if (response.status === 422) {
+                    setError(errorData.message || 'Usuário não existe ou senha inválida.');
+                } else {
+                    setError('Erro ao tentar realizar o login.'); // Mensagem genérica de erro
+                }
                 throw new Error('Falha na autenticação');
             }
 
@@ -46,6 +55,8 @@ const LoginPage = () => {
                 </div>
 
                 <form onSubmit={handleSubmit}>
+                    {error && <div className="text-red-500 mb-4">{error}</div>} {/* Exibe a mensagem de erro se existir */}
+                    
                     <div>
                         <label htmlFor="email" className="block text-orange-500 mb-1">E-mail</label>
                         <input 

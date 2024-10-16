@@ -126,7 +126,7 @@ const ProfileForm = ({ userData, setUserData }) => {
                         onChange={handleTipoUsuChange}
                         className="bg-gray-300 p-2 rounded w-full"
                     >
-                        <option value="Cliente">Cliente</option>
+                        <option value="Locatario">Locatário</option>
                         <option value="Locador">Locador</option>
                         <option value="Locatário">Locatário</option>
                     </select>
