@@ -1,3 +1,4 @@
+// components/ProfileForm.js
 import { useState } from 'react';
 
 const ProfileForm = ({ userData, setUserData }) => {
@@ -33,7 +34,7 @@ const ProfileForm = ({ userData, setUserData }) => {
         e.preventDefault();
         const token = localStorage.getItem('auth_token');
         if (!token) {
-            
+            alert('Token de autenticação não encontrado.');
             return;
         }
 
@@ -47,16 +48,19 @@ const ProfileForm = ({ userData, setUserData }) => {
                 body: JSON.stringify(userData),  
             });
 
+            // Adicionando um console.log para verificar a resposta
+            const data = await response.json();
+            console.log(data);
+
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Erro ao atualizar o perfil:', errorText);
-                throw new Error('Erro ao atualizar o perfil');
+                console.error('Erro ao atualizar o perfil:', data);
+                throw new Error(data.message || 'Erro ao atualizar o perfil');
             }
 
             alert('Perfil atualizado com sucesso');
         } catch (error) {
             console.error('Erro na requisição de atualização do perfil:', error);
-            alert('Erro ao atualizar o perfil');
+            alert('Erro ao atualizar o perfil: ' + error.message);
         }
     };
 

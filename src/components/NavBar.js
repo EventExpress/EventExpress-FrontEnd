@@ -1,56 +1,27 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ApplicationLogo from './ApplicationLogo';
+import { useAuth } from '@/context/AuthContext'; // Importa o useAuth
 
 const NavBar = () => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const { user, loading, logout } = useAuth(); // Obtém user, loading e logout do contexto
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
+    // useEffect para re-renderizar o componente quando o estado de autenticação mudar
     useEffect(() => {
-        const fetchUser = async () => {
-            setLoading(true);
-            const token = localStorage.getItem('token');
-
-            if (token) {
-                try {
-                    const response = await fetch('http://localhost:8000/user', {
-                        method: 'GET',
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        setUser(data);
-                    } else {
-                        console.error('Falha ao buscar usuário:', response.statusText);
-                        setUser(null);
-                    }
-                } catch (error) {
-                    console.error('Erro ao buscar usuário:', error);
-                    setUser(null);
-                }
-            } else {
-                setUser(null);
-            }
-            setLoading(false);
-        };
-
-        fetchUser();
-    }, []);
+        // Esse efeito será chamado sempre que o estado de `user` mudar
+    }, [user]);
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
-        setUser(null);
+        logout(); // Chama a função de logout do contexto
+        window.location.reload(); // Atualiza a página após o logout para garantir que o estado seja redefinido
     };
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         console.log('Buscando:', searchQuery);
+        // Aqui você pode redirecionar para uma página de resultados de busca, se necessário
     };
 
     return (

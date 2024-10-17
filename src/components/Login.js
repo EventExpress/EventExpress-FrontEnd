@@ -1,20 +1,20 @@
-"use client"; // Certifique-se de que este componente é um Client Component 
+"use client"; // Certifique-se de que este componente é um Client Component
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation'; // Importa useRouter
-import ApplicationLogo from '@/components/ApplicationLogo'; // Importe o componente da logo
+import { useRouter } from 'next/navigation';
+import ApplicationLogo from '@/components/ApplicationLogo';
 
-const LoginPage = () => {
+const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [remember, setRemember] = useState(false);
-    const [error, setError] = useState(''); // Estado para armazenar mensagens de erro
-    const router = useRouter(); // Cria uma instância do roteador
+    const [error, setError] = useState('');
+    const router = useRouter();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError(''); // Reseta a mensagem de erro antes da nova tentativa
+        setError('');
 
         try {
             const response = await fetch('http://localhost:8000/api/login', {
@@ -27,36 +27,30 @@ const LoginPage = () => {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                // Atualiza a mensagem de erro com base na resposta
-                if (response.status === 422) {
-                    setError(errorData.message || 'Usuário não existe ou senha inválida.');
-                } else {
-                    setError('Erro ao tentar realizar o login.'); // Mensagem genérica de erro
-                }
-                throw new Error('Falha na autenticação');
+                const message = errorData.errors?.credentials?.[0] || 'Usuário não existe ou senha inválida.';
+                setError(message);
+                throw new Error(message);
             }
 
             const data = await response.json();
-            localStorage.setItem('auth_token', data.token); // Salve o token se necessário
-
-            // Redirecionar para a página desejada após login
-            router.push('/paginicial'); // Alterado para redirecionar para paginicial
+            localStorage.setItem('auth_token', data.token);
+            router.push('/paginicial');
+            router.reload(); // Atualiza a página para garantir que as mudanças sejam aplicadas
         } catch (error) {
             console.error('Erro na autenticação:', error);
         }
     };
 
     return (
-        <div className="bg-gray-10 min-h-screen flex items-center justify-center">
-            <div className="bg-gray-700 p-8 rounded-lg shadow-lg w-full max-w-md">
-                {/* Componente da logo */}
+        <div className="bg-gray-100 min-h-screen flex items-center justify-center">
+            <div className="bg-gray-700 p-8 rounded-lg shadow-lg max-w-md w-full">
                 <div className="flex justify-center mb-4">
                     <ApplicationLogo className="h-16 w-16" />
                 </div>
 
                 <form onSubmit={handleSubmit}>
-                    {error && <div className="text-red-500 mb-4">{error}</div>} {/* Exibe a mensagem de erro se existir */}
-                    
+                    {error && <div className="text-red-500 mb-4 text-center">{error}</div>} 
+
                     <div>
                         <label htmlFor="email" className="block text-orange-500 mb-1">E-mail</label>
                         <input 
@@ -68,7 +62,7 @@ const LoginPage = () => {
                             required 
                         />
                     </div>
-                    
+
                     <div className="mt-4">
                         <label htmlFor="password" className="block text-orange-500 mb-1">Senha</label>
                         <input 
@@ -85,11 +79,11 @@ const LoginPage = () => {
                         <label className="inline-flex items-center text-orange-500">
                             <input 
                                 type="checkbox" 
-                                className="rounded border-gray-300 text-orange-600 shadow-sm focus:ring-orange-500" 
+                                className="rounded border-gray-300 text-orange-600 shadow-sm focus:ring focus:ring-orange-500" 
                                 checked={remember} 
                                 onChange={(e) => setRemember(e.target.checked)} 
                             />
-                            <span className="ml-2 text-sm">lembrar de mim</span>
+                            <span className="ml-2 text-sm">Lembrar de mim</span>
                         </label>
                     </div>
 
@@ -98,11 +92,11 @@ const LoginPage = () => {
                         <Link href="/register" className="underline text-sm text-orange-500 hover:text-orange-400">Não possui cadastro?</Link>
                     </div>
 
-                    <button type="submit" className="mt-4 w-full bg-orange-500 hover:bg-orange-600 focus:bg-orange-600 text-white py-2 rounded-md">Entrar</button>
+                    <button type="submit" className="mt-4 w-full bg-orange-500 hover:bg-orange-600 focus:bg-orange-600 text-white py-2 rounded-md transition duration-200 ease-in-out">Entrar</button>
                 </form>
             </div>
         </div>
     );
 };
 
-export default LoginPage;
+export default Login;
