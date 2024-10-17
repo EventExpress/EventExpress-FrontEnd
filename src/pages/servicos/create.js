@@ -1,6 +1,6 @@
 // src/pages/servicos/criar.js
 
-import NavBar from '../../components/NavBar'; // ajuste o caminho conforme necessário
+import NavBar from '../../components/NavBar'; 
 import { useState } from 'react';
 
 const CriarServico = () => {
@@ -30,9 +30,9 @@ const CriarServico = () => {
         });
 
         if (response.ok) {
-            // redirecionar ou mostrar mensagem de sucesso
+
         } else {
-            // lidar com erro
+
         }
     };
 

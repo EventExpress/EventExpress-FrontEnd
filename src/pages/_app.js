@@ -1,7 +1,7 @@
 // src/pages/_app.js
 import '../app/globals.css';
 import { SessionProvider } from 'next-auth/react';
-import { AuthProvider } from '@/context/AuthContext'; // Ajuste o caminho conforme necessário
+import { AuthProvider } from '@/context/AuthContext'; 
 
 function MyApp({ Component, pageProps }) {
   return (

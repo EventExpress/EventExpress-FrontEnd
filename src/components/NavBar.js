@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ApplicationLogo from './ApplicationLogo';
-import { useAuth } from '@/context/AuthContext'; // Importa o useAuth
+import { useAuth } from '@/context/AuthContext';
 
 const NavBar = () => {
     const { user, loading, logout } = useAuth(); // Obtém user, loading e logout do contexto
@@ -21,7 +21,6 @@ const NavBar = () => {
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         console.log('Buscando:', searchQuery);
-        // Aqui você pode redirecionar para uma página de resultados de busca, se necessário
     };
 
     return (

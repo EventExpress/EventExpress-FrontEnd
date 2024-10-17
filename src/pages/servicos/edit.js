@@ -1,7 +1,7 @@
 // src/pages/servicos/edit.js
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import NavBar from '../../components/NavBar'; // Importa a NavBar
+import NavBar from '../../components/NavBar'; 
 
 const EditServico = () => {
     const router = useRouter();
@@ -24,7 +24,7 @@ const EditServico = () => {
 
     useEffect(() => {
         // Verifica o tipo de usuário
-        const user = JSON.parse(localStorage.getItem('user')); // Supondo que você armazene o usuário em localStorage
+        const user = JSON.parse(localStorage.getItem('user')); 
         if (!user || user.tipo !== 'Prestador') {
             router.push('/'); // Redireciona se não for Prestador
         }
@@ -35,7 +35,7 @@ const EditServico = () => {
             .then((data) => setCategorias(data))
             .catch((error) => console.error('Erro ao buscar categorias:', error));
 
-        // Busque os dados do serviço para editar
+        // Busca os dados do serviço para editar
         if (id) {
             fetch(`http://localhost:8000/api/servico/${id}`)
                 .then((response) => response.json())

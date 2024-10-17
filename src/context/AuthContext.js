@@ -9,9 +9,8 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         const token = localStorage.getItem('auth_token');
         if (token) {
-            // Aqui você pode fazer uma chamada à API para obter os dados do usuário
             // por exemplo, você pode decodificar o token ou fazer uma requisição ao backend
-            setUser({ token }); // Substitua isso com a resposta da API
+            setUser({ token }); 
         }
     }, []);
 

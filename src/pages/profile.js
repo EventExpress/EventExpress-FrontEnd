@@ -1,10 +1,10 @@
 // pages/profile.js
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import NavBar from '../components/NavBar'; // Verifique se o caminho está correto
-import ProfileForm from '../components/ProfileForm'; // Novo componente
-import PasswordUpdateForm from '../components/PasswordUpdateForm'; // Novo componente
-import DeleteAccount from '../components/DeleteAccount'; // Novo componente
+import NavBar from '../components/NavBar'; 
+import ProfileForm from '../components/ProfileForm'; 
+import PasswordUpdateForm from '../components/PasswordUpdateForm'; 
+import DeleteAccount from '../components/DeleteAccount'; 
 
 const ProfilePage = () => {
     const [userData, setUserData] = useState({

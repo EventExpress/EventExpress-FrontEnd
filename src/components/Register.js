@@ -1,10 +1,10 @@
-"use client"; // Certifique-se de que este componente seja um Client Component
+"use client"; 
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Button from '@/components/Button'; // Ajuste o caminho conforme necessário
-import ApplicationLogo from '@/components/ApplicationLogo'; // Importando a logo
-import Link from 'next/link'; // Importando o Link do Next.js
+import Button from '@/components/Button'; 
+import ApplicationLogo from '@/components/ApplicationLogo'; 
+import Link from 'next/link'; 
 import '@/app/globals.css';
 
 const RegisterPage = () => {

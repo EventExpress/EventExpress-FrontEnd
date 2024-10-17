@@ -1,6 +1,6 @@
 // src/pages/servicos/search.js
 import React, { useEffect, useState } from 'react';
-import NavBar from '../../components/NavBar'; // Importa a NavBar
+import NavBar from '../../components/NavBar'; 
 
 const SearchServicos = () => {
     const [servicos, setServicos] = useState([]);

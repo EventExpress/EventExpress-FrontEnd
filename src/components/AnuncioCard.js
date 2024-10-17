@@ -8,7 +8,7 @@ const AnuncioCard = ({ anuncio }) => {
           {anuncio.imagens && anuncio.imagens.map((imagem) => (
             <img
               key={imagem.id}
-              src={imagem.image_path} // Use a string Base64 diretamente
+              src={imagem.image_path} 
               alt={`Imagem do anúncio ${anuncio.titulo}`}
               className="imagem-anuncio"
             />
