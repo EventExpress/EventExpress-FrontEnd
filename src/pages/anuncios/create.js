@@ -72,7 +72,7 @@ const CreateAnuncio = () => {
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://localhost:8000/api/anuncio', {
+            const response = await fetch('http://localhost:8000/api/anuncios', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

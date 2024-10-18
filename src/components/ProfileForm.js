@@ -40,10 +40,13 @@ const ProfileForm = ({ userData, setUserData }) => {
 
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/${userData.id}`, {  
-                method: 'PUT',  
+                method: 'PUT', 
+                mode: 'cors', 
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
+                    'Access-Control-allow-Methods':'*',
+                    'Access-Control-allow-Origin':'*',
                 },
                 body: JSON.stringify(userData),  
             });
