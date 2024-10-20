@@ -25,7 +25,10 @@ const LoginPage = () => {
                 password,
             });
 
-            localStorage.setItem('auth_token', response.data.token); // Salva o token
+            if (response.data.token) {
+                localStorage.setItem('auth_token', response.data.token);
+                console.log('Token armazenado:', response.data.token);
+              }
 
             // Redirecionar para a página desejada após login
             router.push('/paginicial');

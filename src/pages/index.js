@@ -1,17 +1,31 @@
-// src/pages/index.js
 import React, { useEffect, useState } from 'react';
 import NavBar from '../components/NavBar';
-import { useSession } from 'next-auth/react';
+import axios from 'axios';
 
 const HomePage = () => {
-    const { data: session } = useSession();
     const [anuncios, setAnuncios] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchAnuncios = async () => {
-            const response = await fetch('/api/anuncios'); // Ajuste a URL conforme sua API
-            const data = await response.json();
-            setAnuncios(data);
+            setLoading(true);
+            setError(null); 
+
+            try {
+                const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/anuncios/noauth`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                setAnuncios(response.data);
+            } catch (error) {
+                setError(error.response?.data?.message || 'Erro ao buscar anúncios');
+                console.error('Erro ao buscar anúncios:', error);
+            } finally {
+                setLoading(false);
+            }
         };
 
         fetchAnuncios();
@@ -19,13 +33,17 @@ const HomePage = () => {
 
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-            <NavBar user={session?.user} /> {/* Passando o usuário para a NavBar */}
+            <NavBar /> {/* NavBar sem passar o usuário autenticado */}
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <h1 className="text-2xl font-semibold mb-4 text-orange-500">Anúncios</h1>
 
-                        {anuncios.length > 0 ? (
+                        {loading ? (
+                            <p>Carregando...</p>
+                        ) : error ? (
+                            <p className="text-red-500">{error}</p>
+                        ) : anuncios.length > 0 ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                                 {anuncios.map(anuncio => (
                                     <div key={anuncio.id} className="bg-white dark:bg-gray-200 rounded-lg shadow-md p-4 transition-transform transform hover:scale-105">

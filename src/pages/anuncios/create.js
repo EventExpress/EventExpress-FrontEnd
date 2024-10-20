@@ -1,9 +1,8 @@
-// src/pages/anuncio/create.js
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import axios from 'axios'; // Importa o axios
-import NavBar from '../../components/NavBar'; // Importa a NavBar
-import Button from '@/components/Button'; // Ajuste o caminho conforme necessário
+import axios from 'axios';
+import NavBar from '../../components/NavBar';
+import Button from '@/components/Button';
 
 const CreateAnuncio = () => {
     const router = useRouter();
@@ -18,7 +17,7 @@ const CreateAnuncio = () => {
         valor: '',
         agenda: '',
         categoriaId: [],
-        imagens: [], // Adiciona o campo para imagens
+        imagens: [],
     });
     const [categorias, setCategorias] = useState([]);
     const [errors, setErrors] = useState({});
@@ -26,22 +25,39 @@ const CreateAnuncio = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [checkboxOpen, setCheckboxOpen] = useState(false);
 
-    useEffect(() => {
-        // Busque as categorias da API usando axios
-        const fetchCategorias = async () => {
-            try {
-                const token = localStorage.getItem('token'); // Ou obtenha o token de onde você o armazena
-                const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/anuncios/categoria`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`, // Envia o token de autenticação
-                    },
-                });
-                setCategorias(response.data);
-            } catch (error) {
-                console.error('Erro ao buscar categorias:', error);
+    const fetchCategorias = async () => {
+        try {
+            const token = localStorage.getItem('auth_token');
+            console.log('Token:', token); // Verifique se o token está aqui
+          
+            if (!token) {
+              console.error('Token não encontrado!');
+              return;
             }
-        };
-    });
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/categoria`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+            });
+
+            // Verifique a estrutura da resposta
+            console.log('Categorias recebidas:', response.data);
+            if (Array.isArray(response.data)) {
+                setCategorias(response.data); // Se a resposta for um array
+            } else if (response.data.categorias) {
+                setCategorias(response.data.categorias); // Se a resposta for um objeto com categorias
+            }
+        } catch (error) {
+            console.error('Erro ao buscar categorias:', error);
+        }
+    };
+
+    // Chama fetchCategorias quando o componente é montado
+    useEffect(() => {
+        fetchCategorias();
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -51,14 +67,14 @@ const CreateAnuncio = () => {
     const handleImageChange = async (e) => {
         const files = Array.from(e.target.files);
         const base64Images = await Promise.all(files.map(file => convertToBase64(file)));
-        setFormData({ ...formData, imagens: base64Images }); // Define o estado das imagens como os dados em base64
+        setFormData({ ...formData, imagens: base64Images });
     };
 
     const convertToBase64 = (file) => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result); // Retorna o resultado em base64
+            reader.onload = () => resolve(reader.result);
             reader.onerror = (error) => reject(error);
         });
     };
@@ -83,12 +99,12 @@ const CreateAnuncio = () => {
 
         try {
             const response = await axios.post(
-                'http://localhost:8000/api/anuncio',
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/anuncios`,
                 formData,
                 {
                     headers: {
                         'Content-Type': 'application/json',
-                        Authorization: `Bearer ${localStorage.getItem('token')}`, // Adiciona o token no cabeçalho
+                        Authorization: `Bearer ${localStorage.getItem('token')}`,
                     },
                 }
             );
@@ -106,9 +122,9 @@ const CreateAnuncio = () => {
                     valor: '',
                     agenda: '',
                     categoriaId: [],
-                    imagens: [], // Limpa os campos após sucesso
+                    imagens: [],
                 });
-                router.push('/paginicial'); // Redireciona após o sucesso
+                router.push('/paginicial');
             }
         } catch (error) {
             if (error.response && error.response.data) {
@@ -127,7 +143,7 @@ const CreateAnuncio = () => {
 
     return (
         <div>
-            <NavBar /> {/* Adiciona a NavBar */}
+            <NavBar />
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
@@ -191,30 +207,30 @@ const CreateAnuncio = () => {
                                 </div>
 
                                 <div className="mt-4">
-    <label className="text-orange-500">Categorias:</label>
-    <button type="button" onClick={toggleCheckboxes} className="text-blue-600">Selecionar Categorias</button>
-    {checkboxOpen && (
-        <div className="mt-2 border border-gray-300 rounded-md p-2">
-            {categorias.length > 0 ? (
-                categorias.map((categoria) => (
-                    <div key={categoria.id}>
-                        <label className="flex items-center">
-                            <input
-                                type="checkbox"
-                                checked={formData.categoriaId.includes(categoria.id)}
-                                onChange={() => handleCheckboxChange(categoria.id)}
-                                className="mr-2"
-                            />
-                            {categoria.nome}
-                        </label>
-                    </div>
-                ))
-            ) : (
-                <div className="text-gray-500">Nenhuma categoria disponível.</div>
-            )}
-        </div>
-    )}
-</div>
+                                    <label className="text-orange-500">Categorias:</label>
+                                    <button type="button" onClick={toggleCheckboxes} className="text-blue-600">Selecionar Categorias</button>
+                                    {checkboxOpen && (
+                                        <div className="mt-2 border border-gray-300 rounded-md p-2">
+                                            {categorias.length > 0 ? (
+                                                categorias.map((categoria) => (
+                                                    <div key={categoria.id}>
+                                                        <label className="flex items-center">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={formData.categoriaId.includes(categoria.id)}
+                                                                onChange={() => handleCheckboxChange(categoria.id)}
+                                                                className="mr-2"
+                                                            />
+                                                            {categoria.titulo}
+                                                        </label>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="text-gray-500">Nenhuma categoria disponível.</div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
 
                                 <div className="mt-4">
                                     <label htmlFor="imagens" className="block text-orange-500 font-semibold mb-1">Imagens</label>
@@ -225,15 +241,13 @@ const CreateAnuncio = () => {
                                         multiple
                                         onChange={handleImageChange}
                                         required
-                                        className="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring focus:ring-orange-500"
+                                        className="block w-full border border-gray-300 rounded-md p-2 focus:border-orange-500 focus:ring focus:ring-orange-500"
                                     />
                                 </div>
 
-                                <div className="mt-6">
-                                    <Button type="submit" loading={isLoading} className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition duration-200">
-                                        Criar Anúncio
-                                    </Button>
-                                </div>
+                                <Button type="submit" disabled={isLoading} className="mt-6">
+                                    {isLoading ? 'Criando...' : 'Criar Anúncio'}
+                                </Button>
                             </form>
                         </div>
                     </div>
