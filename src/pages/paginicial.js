@@ -1,7 +1,7 @@
-// src/pages/paginicial.js
 import React, { useEffect, useState } from 'react';
 import NavBar from '../components/NavBar';
 import { useSession } from 'next-auth/react';
+import axios from 'axios'; // Certifique-se de importar o axios
 
 const Paginicial = () => {
     const { data: session } = useSession();
@@ -15,32 +15,32 @@ const Paginicial = () => {
             setError(null); 
 
             try {
-                const token = session?.user?.token; // Altere essa linha conforme necessário para obter o token
+                const token = session?.user?.token;
 
-                const response = await fetch('http://localhost:8000/api/anuncios', {
-                    method: 'GET',
+                if (!token) {
+                    throw new Error('Token de autenticação não encontrado');
+                }
+
+                const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/anuncios`, {
                     headers: {
-                        'Authorization': `Bearer ${token}`, // Adicionando cabeçalho de autorização
+                        'Authorization': `Bearer ${token}`, // Enviando o token no cabeçalho
                         'Content-Type': 'application/json',
                     },
                 });
 
-                if (!response.ok) {
-                    throw new Error('Erro ao buscar anúncios: ' + response.statusText);
-                }
-
-                const data = await response.json();
-                setAnuncios(data);
+                setAnuncios(response.data); // Axios já trata a conversão de JSON
             } catch (error) {
-                setError(error.message);
+                setError(error.response?.data?.message || 'Erro ao buscar anúncios');
                 console.error('Erro ao buscar anúncios:', error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchAnuncios();
-    }, [session]); 
+        if (session) {
+            fetchAnuncios();
+        }
+    }, [session]);
 
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
@@ -60,12 +60,12 @@ const Paginicial = () => {
                                     <div key={anuncio.id} className="bg-white dark:bg-gray-200 rounded-lg shadow-md p-4 transition-transform transform hover:scale-105">
                                         <h2 className="text-gray-900 dark:text-gray-100 font-semibold text-lg">{anuncio.titulo}</h2>
                                         <p className="text-gray-600 dark:text-gray-400">
-                                            {anuncio.endereco.cidade}, CEP: {anuncio.endereco.cep}, Número: {anuncio.endereco.numero}, {anuncio.endereco.bairro}
+                                            {anuncio.endereco?.cidade}, CEP: {anuncio.endereco?.cep}, Número: {anuncio.endereco?.numero}, {anuncio.endereco?.bairro}
                                         </p>
                                         <p className="text-gray-700 dark:text-gray-300">Capacidade: {anuncio.capacidade}</p>
                                         <p className="text-gray-700 dark:text-gray-300">{anuncio.descricao}</p>
-                                        <p className="text-gray-700 dark:text-gray-300">Locador: {anuncio.usuario.nome}</p>
-                                        <p className="text-gray-700 dark:text-gray-300">Valor: R$ {anuncio.valor.toFixed(2)}</p>
+                                        <p className="text-gray-700 dark:text-gray-300">Locador: {anuncio.usuario?.nome}</p>
+                                        <p className="text-gray-700 dark:text-gray-300">Valor: R$ {anuncio.valor?.toFixed(2)}</p>
                                         <div className="mt-4">
                                             <a href={`/reservar/${anuncio.id}`} className="inline-block bg-blue-500 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-600 transition duration-200">Reservar</a>
                                         </div>

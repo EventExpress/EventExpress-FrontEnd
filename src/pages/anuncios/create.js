@@ -1,6 +1,7 @@
 // src/pages/anuncio/create.js
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import axios from 'axios'; // Importa o axios
 import NavBar from '../../components/NavBar'; // Importa a NavBar
 import Button from '@/components/Button'; // Ajuste o caminho conforme necessário
 
@@ -26,12 +27,21 @@ const CreateAnuncio = () => {
     const [checkboxOpen, setCheckboxOpen] = useState(false);
 
     useEffect(() => {
-        // Busque as categorias da API
-        fetch('http://localhost:8000/api/categorias')
-            .then((response) => response.json())
-            .then((data) => setCategorias(data))
-            .catch((error) => console.error('Erro ao buscar categorias:', error));
-    }, []);
+        // Busque as categorias da API usando axios
+        const fetchCategorias = async () => {
+            try {
+                const token = localStorage.getItem('token'); // Ou obtenha o token de onde você o armazena
+                const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/anuncios/categoria`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`, // Envia o token de autenticação
+                    },
+                });
+                setCategorias(response.data);
+            } catch (error) {
+                console.error('Erro ao buscar categorias:', error);
+            }
+        };
+    });
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -72,16 +82,18 @@ const CreateAnuncio = () => {
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://localhost:8000/api/anuncio', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
-                },
-                body: JSON.stringify(formData),
-            });
+            const response = await axios.post(
+                'http://localhost:8000/api/anuncio',
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${localStorage.getItem('token')}`, // Adiciona o token no cabeçalho
+                    },
+                }
+            );
 
-            if (response.ok) {
+            if (response.status === 201) {
                 setSuccessMessage('Anúncio criado com sucesso!');
                 setFormData({
                     titulo: '',
@@ -97,12 +109,13 @@ const CreateAnuncio = () => {
                     imagens: [], // Limpa os campos após sucesso
                 });
                 router.push('/paginicial'); // Redireciona após o sucesso
-            } else {
-                const errorData = await response.json();
-                setErrors(errorData.errors || {});
             }
         } catch (error) {
-            console.error('Erro ao enviar formulário:', error);
+            if (error.response && error.response.data) {
+                setErrors(error.response.data.errors || {});
+            } else {
+                console.error('Erro ao enviar formulário:', error);
+            }
         } finally {
             setIsLoading(false);
         }
@@ -178,26 +191,30 @@ const CreateAnuncio = () => {
                                 </div>
 
                                 <div className="mt-4">
-                                    <label className="text-orange-500">Categorias:</label>
-                                    <button type="button" onClick={toggleCheckboxes} className="text-blue-600">Selecionar Categorias</button>
-                                    {checkboxOpen && (
-                                        <div className="mt-2 border border-gray-300 rounded-md p-2">
-                                            {categorias.map((categoria) => (
-                                                <div key={categoria.id}>
-                                                    <label className="flex items-center">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={formData.categoriaId.includes(categoria.id)}
-                                                            onChange={() => handleCheckboxChange(categoria.id)}
-                                                            className="mr-2"
-                                                        />
-                                                        {categoria.nome}
-                                                    </label>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
+    <label className="text-orange-500">Categorias:</label>
+    <button type="button" onClick={toggleCheckboxes} className="text-blue-600">Selecionar Categorias</button>
+    {checkboxOpen && (
+        <div className="mt-2 border border-gray-300 rounded-md p-2">
+            {categorias.length > 0 ? (
+                categorias.map((categoria) => (
+                    <div key={categoria.id}>
+                        <label className="flex items-center">
+                            <input
+                                type="checkbox"
+                                checked={formData.categoriaId.includes(categoria.id)}
+                                onChange={() => handleCheckboxChange(categoria.id)}
+                                className="mr-2"
+                            />
+                            {categoria.nome}
+                        </label>
+                    </div>
+                ))
+            ) : (
+                <div className="text-gray-500">Nenhuma categoria disponível.</div>
+            )}
+        </div>
+    )}
+</div>
 
                                 <div className="mt-4">
                                     <label htmlFor="imagens" className="block text-orange-500 font-semibold mb-1">Imagens</label>

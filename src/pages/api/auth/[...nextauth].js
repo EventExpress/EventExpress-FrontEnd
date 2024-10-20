@@ -1,8 +1,8 @@
 // src/pages/api/auth/[...nextauth].js
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-
-
+import axios from "axios";
+import cookie from 'cookie'; // Para lidar com cookies do Sanctum
 
 export default NextAuth({
     providers: [
@@ -12,28 +12,38 @@ export default NextAuth({
                 email: { label: "Email", type: "text", placeholder: "email@example.com" },
                 password: { label: "Password", type: "password" },
             },
-            async authorize(credentials) {
-                const res = await fetch("http://localhost:8000/api/login", { 
-                    method: "POST",
-                    body: JSON.stringify({
+            async authorize(credentials, req) {
+                try {
+                    // Primeira requisição para obter o cookie CSRF
+                    await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/sanctum/csrf-cookie`, {
+                        withCredentials: true,
+                    });
+
+                    // Enviar os dados de login com axios
+                    const res = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/login`, {
                         email: credentials.email,
                         password: credentials.password,
-                    }),
-                    headers: { "Content-Type": "application/json" },
-                });
+                    }, {
+                        withCredentials: true, // Necessário para enviar cookies do Sanctum
+                    });
 
-                const user = await res.json();
+                    const user = res.data;
 
-                if (!res.ok || !user || !user.data) {
-                    return null; // Retorne null se não houver usuário
+                    // Verificar se o login foi bem-sucedido
+                    if (user && user.data) {
+                        return user.data;
+                    }
+
+                    return null;
+                } catch (error) {
+                    console.error('Erro ao autenticar:', error);
+                    return null;
                 }
-
-                return user.data; // Certifique-se de que está retornando a parte correta do usuário
             },
         }),
     ],
     pages: {
-        signIn: "/login", // Altere para o caminho do seu login
+        signIn: "/login", // Caminho para a página de login
     },
     session: {
         jwt: true,
@@ -41,14 +51,14 @@ export default NextAuth({
     callbacks: {
         async jwt({ token, user }) {
             if (user) {
-                token.id = user.id; // Certifique-se de que 'user' tem a propriedade 'id'
-                token.nome = user.nome; // Adicione qualquer outra informação necessária
+                token.id = user.id;
+                token.nome = user.nome;
             }
             return token;
         },
         async session({ session, token }) {
             session.user.id = token.id;
-            session.user.nome = token.nome; // Adicione qualquer outra informação necessária à sessão
+            session.user.nome = token.nome;
             return session;
         },
     },

@@ -5,6 +5,7 @@ import NavBar from '../components/NavBar'; // Verifique se o caminho está corre
 import ProfileForm from '../components/ProfileForm'; // Novo componente
 import PasswordUpdateForm from '../components/PasswordUpdateForm'; // Novo componente
 import DeleteAccount from '../components/DeleteAccount'; // Novo componente
+import axios from 'axios'; // Importa o axios
 
 const ProfilePage = () => {
     const [userData, setUserData] = useState({
@@ -36,27 +37,17 @@ const ProfilePage = () => {
             }
 
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/profile`, {
-                    method: 'GET',
+                const response = await axios.get('http://localhost:8000/api/user/profile', {
                     headers: {
-                        'Authorization': `Bearer ${token}`,
+                        Authorization: `Bearer ${token}`, // Adiciona o token de autenticação
                     },
                 });
 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Erro ao buscar os dados do usuário:', errorText);
-                    throw new Error('Erro ao buscar os dados do usuário');
-                }
-
-                const data = await response.json();
-                if (data.status) {
-                    setUserData(data.user);
-                } else {
-                    throw new Error('Usuário não encontrado');
-                }
+                console.log('Usuário encontrado com sucesso:', response.data);
+                setUserData(response.data.user); // Atualiza os dados do usuário
             } catch (error) {
-                setError(error.message);
+                console.error('Erro ao buscar os dados do usuário:', error.response?.data || error.message);
+                setError('Erro ao buscar os dados do usuário'); // Atualiza a mensagem de erro
             } finally {
                 setLoading(false);
             }

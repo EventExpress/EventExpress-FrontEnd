@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+
+import axios from 'axios'; // Importa o axios
 import Button from '@/components/Button'; // Ajuste o caminho conforme necessário
 import ApplicationLogo from '@/components/ApplicationLogo'; // Importando a logo
 import Link from 'next/link'; // Importando o Link do Next.js
@@ -45,24 +47,15 @@ const RegisterPage = () => {
         setIsLoading(true); // Ativa o estado de loading
 
         try {
-            const response = await fetch('http://localhost:8000/api/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                console.log('Usuário registrado com sucesso:', data);
-                router.push('/login'); // Redireciona para a página de login após o registro bem-sucedido
-            } else {
-                const errorData = await response.json();
-                console.error('Erro no registro:', errorData);
-            }
+            const response = await axios.post('http://localhost:8000/api/register', formData);
+            console.log('Usuário registrado com sucesso:', response.data);
+            router.push('/login'); // Redireciona para a página de login após o registro bem-sucedido
         } catch (error) {
-            console.error('Erro na requisição:', error);
+            if (error.response) {
+                console.error('Erro no registro:', error.response.data);
+            } else {
+                console.error('Erro na requisição:', error.message);
+            }
         } finally {
             setIsLoading(false); // Desativa o estado de loading
         }
@@ -254,7 +247,6 @@ const RegisterPage = () => {
                         required
                     />
                 </div>
-
                 <div className="mt-4">
                     <label htmlFor="password" className="block text-orange-500">Senha</label>
                     <input

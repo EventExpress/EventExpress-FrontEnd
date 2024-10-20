@@ -1,9 +1,12 @@
 "use client"; // Certifique-se de que este componente é um Client Component 
-
+import axios from 'axios'; // Importa o axios
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation'; // Importa useRouter
 import ApplicationLogo from '@/components/ApplicationLogo'; // Importe o componente da logo
+import Button from '@/components/Button';
+
+
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
@@ -17,31 +20,21 @@ const LoginPage = () => {
         setError(''); // Reseta a mensagem de erro antes da nova tentativa
 
         try {
-            const response = await fetch('http://localhost:8000/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, password }),
+            const response = await axios.post('http://localhost:8000/api/login', {
+                email,
+                password,
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                // Atualiza a mensagem de erro com base na resposta
-                if (response.status === 422) {
-                    setError(errorData.message || 'Usuário não existe ou senha inválida.');
-                } else {
-                    setError('Erro ao tentar realizar o login.'); // Mensagem genérica de erro
-                }
-                throw new Error('Falha na autenticação');
-            }
-
-            const data = await response.json();
-            localStorage.setItem('auth_token', data.token); // Salve o token se necessário
+            localStorage.setItem('auth_token', response.data.token); // Salva o token
 
             // Redirecionar para a página desejada após login
-            router.push('/paginicial'); // Alterado para redirecionar para paginicial
+            router.push('/paginicial');
         } catch (error) {
+            if (error.response && error.response.status === 422) {
+                setError(error.response.data.message || 'Usuário não existe ou senha inválida.');
+            } else {
+                setError('Erro ao tentar realizar o login.');
+            }
             console.error('Erro na autenticação:', error);
         }
     };

@@ -1,56 +1,29 @@
-import React, { useEffect, useState } from 'react';
+// src/components/NavBar.js
+import React, { useState } from 'react';
 import Link from 'next/link';
 import ApplicationLogo from './ApplicationLogo';
+import { useAuth } from 'src/app/context/AuthContext.js';
+import api from '@/services/api'; // Importe o Axios configurado
 
 const NavBar = () => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const { user, loading, logout } = useAuth(); // Usa o AuthContext
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
-    useEffect(() => {
-        const fetchUser = async () => {
-            setLoading(true);
-            const token = localStorage.getItem('token');
-
-            if (token) {
-                try {
-                    const response = await fetch('http://localhost:8000/user', {
-                        method: 'GET',
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        setUser(data);
-                    } else {
-                        console.error('Falha ao buscar usuário:', response.statusText);
-                        setUser(null);
-                    }
-                } catch (error) {
-                    console.error('Erro ao buscar usuário:', error);
-                    setUser(null);
-                }
-            } else {
-                setUser(null);
-            }
-            setLoading(false);
-        };
-
-        fetchUser();
-    }, []);
-
     const handleLogout = () => {
-        localStorage.removeItem('token');
-        setUser(null);
+        logout(); // Usa o método logout do contexto
     };
 
-    const handleSearchSubmit = (e) => {
+    const handleSearchSubmit = async (e) => {
         e.preventDefault();
-        console.log('Buscando:', searchQuery);
+        try {
+            const response = await api.get('/anuncios', {
+                params: { query: searchQuery }, // Envia o parâmetro de busca
+            });
+            console.log('Resultados da busca:', response.data); // Aqui você pode manipular os dados da busca
+        } catch (error) {
+            console.error('Erro ao buscar anúncios:', error);
+        }
     };
 
     return (
@@ -68,12 +41,12 @@ const NavBar = () => {
                             <Link href="/" className="text-gray-900 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium">
                                 Início
                             </Link>
-                            {user && user.tipousu === 'Locatário' && (
+                            {user?.tipousu === 'Locatário' && (
                                 <Link href="/reservas" className="text-gray-900 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium">
                                     Minhas Reservas
                                 </Link>
                             )}
-                            {user && user.tipousu === 'Locador' && (
+                            {user?.tipousu === 'Locador' && (
                                 <>
                                     <Link href="/meus-anuncios" className="text-gray-900 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium">
                                         Meus Anúncios
@@ -83,7 +56,7 @@ const NavBar = () => {
                                     </Link>
                                 </>
                             )}
-                            {user && user.tipousu === 'Prestador' && (
+                            {user?.tipousu === 'Prestador' && (
                                 <Link href="/meus-servicos" className="text-gray-900 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium">
                                     Meus Serviços
                                 </Link>
