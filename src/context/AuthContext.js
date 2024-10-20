@@ -9,7 +9,6 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         const token = localStorage.getItem('auth_token');
         if (token) {
-            // por exemplo, você pode decodificar o token ou fazer uma requisição ao backend
             setUser({ token }); 
         }
     }, []);

@@ -2,8 +2,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-
-
 export default NextAuth({
     providers: [
         CredentialsProvider({
@@ -22,33 +20,42 @@ export default NextAuth({
                     headers: { "Content-Type": "application/json" },
                 });
 
-                const user = await res.json();
+                const response = await res.json();
 
-                if (!res.ok || !user || !user.data) {
-                    return null; // Retorne null se não houver usuário
+                if (!res.ok || !response.data) {
+                    return null; // Retorne null se o login falhar
                 }
 
-                return user.data; // Certifique-se de que está retornando a parte correta do usuário
+                const user = response.data;
+
+                // Adiciona o token JWT ao objeto do usuário para ser usado nos callbacks
+                user.token = response.data.token;
+
+                return user; // Retorna o usuário autenticado
             },
         }),
     ],
     pages: {
-        signIn: "/login", // Altere para o caminho do seu login
+        signIn: "/login",
     },
     session: {
-        jwt: true,
+        strategy: "jwt", // Define o uso de JWT para a sessão
     },
     callbacks: {
         async jwt({ token, user }) {
             if (user) {
-                token.id = user.id; // Certifique-se de que 'user' tem a propriedade 'id'
-                token.nome = user.nome; // Adicione qualquer outra informação necessária
+                token.id = user.id;
+                token.nome = user.nome;
+                token.email = user.email;
+                token.jwt = user.token; // Armazena o token JWT no callback JWT
             }
             return token;
         },
         async session({ session, token }) {
             session.user.id = token.id;
-            session.user.nome = token.nome; // Adicione qualquer outra informação necessária à sessão
+            session.user.nome = token.nome;
+            session.user.email = token.email;
+            session.user.jwt = token.jwt; // Adiciona o token JWT à sessão
             return session;
         },
     },

@@ -4,22 +4,36 @@ import NavBar from '../components/NavBar';
 import { useSession } from 'next-auth/react';
 
 const HomePage = () => {
-    const { data: session } = useSession();
+    const { data: session, status } = useSession();
     const [anuncios, setAnuncios] = useState([]);
 
     useEffect(() => {
         const fetchAnuncios = async () => {
-            const response = await fetch('/api/anuncios'); // Ajuste a URL conforme sua API
-            const data = await response.json();
-            setAnuncios(data);
+            if (session?.user?.jwt) {
+                try {
+                    const response = await fetch('http://localhost:8000/api/anuncios', {
+                        headers: {
+                            Authorization: `Bearer ${session.user.jwt}`,
+                        },
+                    });
+                    const data = await response.json();
+                    setAnuncios(data);
+                } catch (error) {
+                    console.error('Erro ao buscar anúncios:', error);
+                }
+            }
         };
 
         fetchAnuncios();
-    }, []);
+    }, [session]);
+
+    if (status === 'loading') {
+        return <p>Carregando...</p>;
+    }
 
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-            <NavBar user={session?.user} /> {/* Passando o usuário para a NavBar */}
+            <NavBar user={session?.user} />
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">

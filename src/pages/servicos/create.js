@@ -15,7 +15,7 @@ const CriarServico = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const response = await fetch('/adicional', {
+        const response = await fetch('http://localhost:8000/api/adicional', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
