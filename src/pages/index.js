@@ -10,10 +10,17 @@ const HomePage = () => {
     useEffect(() => {
         const fetchAnuncios = async () => {
             setLoading(true);
-            setError(null); 
+            setError(null);
 
             try {
-                const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/anuncios/noauth`, {
+                // Verifica se a variável de ambiente está configurada corretamente
+                const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+                if (!backendUrl) {
+                    throw new Error('A URL do backend não está configurada.');
+                }
+
+                // Faz a requisição à rota que não exige autenticação
+                const response = await axios.get(`${backendUrl}/api/anuncios/noauth`, {
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -21,7 +28,8 @@ const HomePage = () => {
 
                 setAnuncios(response.data);
             } catch (error) {
-                setError(error.response?.data?.message || 'Erro ao buscar anúncios');
+                const errorMessage = error.response?.data?.message || 'Erro ao buscar anúncios';
+                setError(errorMessage);
                 console.error('Erro ao buscar anúncios:', error);
             } finally {
                 setLoading(false);
@@ -33,7 +41,7 @@ const HomePage = () => {
 
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-            <NavBar /> {/* NavBar sem passar o usuário autenticado */}
+            <NavBar />
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
@@ -46,15 +54,27 @@ const HomePage = () => {
                         ) : anuncios.length > 0 ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                                 {anuncios.map(anuncio => (
-                                    <div key={anuncio.id} className="bg-white dark:bg-gray-200 rounded-lg shadow-md p-4 transition-transform transform hover:scale-105">
+                                    <div
+                                        key={anuncio.id}
+                                        className="bg-white dark:bg-gray-200 rounded-lg shadow-md p-4 transition-transform transform hover:scale-105"
+                                    >
                                         <h2 className="text-gray-900 dark:text-gray-100 font-semibold text-lg">{anuncio.titulo}</h2>
-                                        <p className="text-gray-600 dark:text-gray-400">{anuncio.endereco.cidade}, CEP: {anuncio.endereco.cep}, Número: {anuncio.endereco.numero}, {anuncio.endereco.bairro}</p>
+                                        {anuncio.endereco && (
+                                            <p className="text-gray-600 dark:text-gray-400">
+                                                {anuncio.endereco.cidade}, CEP: {anuncio.endereco.cep}, Número: {anuncio.endereco.numero}, {anuncio.endereco.bairro}
+                                            </p>
+                                        )}
                                         <p className="text-gray-700 dark:text-gray-300">Capacidade: {anuncio.capacidade}</p>
                                         <p className="text-gray-700 dark:text-gray-300">{anuncio.descricao}</p>
                                         <p className="text-gray-700 dark:text-gray-300">Locador: {anuncio.usuario.nome}</p>
                                         <p className="text-gray-700 dark:text-gray-300">Valor: R$ {anuncio.valor.toFixed(2)}</p>
                                         <div className="mt-4">
-                                            <a href={`/reservar/${anuncio.id}`} className="inline-block bg-blue-500 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-600 transition duration-200">Reservar</a>
+                                            <a
+                                                href={`/reservar/${anuncio.id}`}
+                                                className="inline-block bg-blue-500 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-600 transition duration-200"
+                                            >
+                                                Reservar
+                                            </a>
                                         </div>
                                     </div>
                                 ))}

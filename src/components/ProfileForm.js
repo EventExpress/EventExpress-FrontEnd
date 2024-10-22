@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useRouter } from 'next/router'; // Importa o useRouter
 
 const ProfileForm = () => {
     const [userData, setUserData] = useState({
@@ -16,8 +17,10 @@ const ProfileForm = () => {
             numero: '',
             bairro: '',
         },
-        tipousu: [], // Mantendo tipousu aqui
+        tipousu: [],
     });
+
+    const router = useRouter(); // Inicializa o router
 
     const fetchUserData = async () => {
         const token = localStorage.getItem('auth_token');
@@ -44,10 +47,11 @@ const ProfileForm = () => {
                 datanasc: user.datanasc,
                 cnpj: user.cnpj,
                 endereco: user.endereco,
-                tipousu: user.tipousu || [], // Ajustado para usar tipousu
+                tipousu: user.tipousu || [],
             });
         } catch (error) {
             console.error('Erro ao buscar os dados do usuário:', error);
+            alert('Erro ao buscar os dados do usuário. Tente novamente mais tarde.');
         }
     };
 
@@ -96,6 +100,7 @@ const ProfileForm = () => {
 
             if (response.status === 200) {
                 alert('Perfil atualizado com sucesso');
+                router.push('/paginicial'); // Redireciona para a página inicial após a atualização
             } else {
                 console.error('Erro ao atualizar o perfil:', response.data);
                 throw new Error('Erro ao atualizar o perfil');
@@ -106,130 +111,144 @@ const ProfileForm = () => {
         }
     };
 
-    return (
-        <form onSubmit={handleProfileUpdate} className="profile-form">
-            <div>
-                <label htmlFor="nome">Nome:</label>
-                <input
-                    type="text"
-                    name="nome"
-                    value={userData.nome || ''}
-                    onChange={handleInputChange}
-                    className="bg-gray-300 p-2 rounded w-full"
-                />
-            </div>
-            <div>
-                <label htmlFor="sobrenome">Sobrenome:</label>
-                <input
-                    type="text"
-                    name="sobrenome"
-                    value={userData.sobrenome || ''}
-                    onChange={handleInputChange}
-                    className="bg-gray-300 p-2 rounded w-full"
-                />
-            </div>
-            <div>
-                <label htmlFor="telefone">Telefone:</label>
-                <input
-                    type="text"
-                    name="telefone"
-                    value={userData.telefone || ''}
-                    onChange={handleInputChange}
-                    className="bg-gray-300 p-2 rounded w-full"
-                />
-            </div>
-            <div>
-                <label htmlFor="email">Email:</label>
-                <input
-                    type="email"
-                    name="email"
-                    value={userData.email || ''}
-                    onChange={handleInputChange}
-                    className="bg-gray-300 p-2 rounded w-full"
-                />
-            </div>
-            <div>
-                <label htmlFor="datanasc">Data de Nascimento:</label>
-                <input
-                    type="date"
-                    name="datanasc"
-                    value={userData.datanasc || ''}
-                    onChange={handleInputChange}
-                    className="bg-gray-300 p-2 rounded w-full"
-                />
-            </div>
-            <div>
-                <label htmlFor="cnpj">CNPJ:</label>
-                <input
-                    type="text"
-                    name="cnpj"
-                    value={userData.cnpj || ''}
-                    onChange={handleInputChange}
-                    className="bg-gray-300 p-2 rounded w-full"
-                />
-            </div>
-            <div>
-                <label htmlFor="cidade">Cidade:</label>
-                <input
-                    type="text"
-                    name="cidade"
-                    value={userData.endereco?.cidade || ''}
-                    onChange={handleAddressChange}
-                    className="bg-gray-300 p-2 rounded w-full"
-                />
-            </div>
-            <div>
-                <label htmlFor="cep">CEP:</label>
-                <input
-                    type="text"
-                    name="cep"
-                    value={userData.endereco?.cep || ''}
-                    onChange={handleAddressChange}
-                    className="bg-gray-300 p-2 rounded w-full"
-                />
-            </div>
-            <div>
-                <label htmlFor="numero">Número:</label>
-                <input
-                    type="text"
-                    name="numero"
-                    value={userData.endereco?.numero || ''}
-                    onChange={handleAddressChange}
-                    className="bg-gray-300 p-2 rounded w-full"
-                />
-            </div>
-            <div>
-                <label htmlFor="bairro">Bairro:</label>
-                <input
-                    type="text"
-                    name="bairro"
-                    value={userData.endereco?.bairro || ''}
-                    onChange={handleAddressChange}
-                    className="bg-gray-300 p-2 rounded w-full"
-                />
-            </div>
-            <div>
-    <label>Tipos de Usuário:</label>
-    <select
-        name="tipousu"
-        value={userData.tipousu} // Aqui, usamos um array diretamente
-        onChange={(e) => {
-            const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
-            handleInputChange({ target: { name: 'tipousu', value: selectedOptions } });
-        }}
-        multiple // Permite múltiplas seleções
-        className="bg-gray-300 p-2 rounded w-full"
-    >
-        <option value="">Selecione</option>
-        <option value="Locatario">Locatário</option>
-        <option value="Locador">Locador</option>
-        <option value="Prestador">Prestador</option>
-        <option value="admin">Admin</option>
-    </select>
-</div>
+    const handleUserTypeChange = (type) => {
+        setUserData((prevData) => {
+            const { tipousu } = prevData;
+            if (tipousu.includes(type)) {
+                return { ...prevData, tipousu: tipousu.filter((t) => t !== type) }; // Remove o tipo se já estiver selecionado
+            } else {
+                return { ...prevData, tipousu: [...tipousu, type] }; // Adiciona o tipo
+            }
+        });
+    };
 
-            <button type="submit" className="bg-blue-500 text-white p-2 rounded mt-4">Atualizar Perfil</button>
-        </form>
+    return (
+        <div className="bg-gray-700 p-6 rounded-lg shadow-md mb-6">
+            <h3 className="text-lg font-semibold text-orange-400">Atualizar Perfil</h3>
+            <form onSubmit={handleProfileUpdate} className="mt-4 grid grid-cols-1 gap-6">
+                <div>
+                    <label className="text-orange-400">Nome:</label>
+                    <input
+                        type="text"
+                        name="nome"
+                        value={userData.nome || ''}
+                        onChange={handleInputChange}
+                        className="bg-gray-300 p-2 rounded w-full"
+                    />
+                </div>
+                <div>
+                    <label className="text-orange-400">Sobrenome:</label>
+                    <input
+                        type="text"
+                        name="sobrenome"
+                        value={userData.sobrenome || ''}
+                        onChange={handleInputChange}
+                        className="bg-gray-300 p-2 rounded w-full"
+                    />
+                </div>
+                <div>
+                    <label className="text-orange-400">Telefone:</label>
+                    <input
+                        type="text"
+                        name="telefone"
+                        value={userData.telefone || ''}
+                        onChange={handleInputChange}
+                        className="bg-gray-300 p-2 rounded w-full"
+                    />
+                </div>
+                <div>
+                    <label className="text-orange-400">Email:</label>
+                    <input
+                        type="email"
+                        name="email"
+                        value={userData.email || ''}
+                        onChange={handleInputChange}
+                        className="bg-gray-300 p-2 rounded w-full"
+                    />
+                </div>
+                <div>
+                    <label className="text-orange-400">Data de Nascimento:</label>
+                    <input
+                        type="date"
+                        name="datanasc"
+                        value={userData.datanasc || ''}
+                        onChange={handleInputChange}
+                        className="bg-gray-300 p-2 rounded w-full"
+                    />
+                </div>
+                <div>
+                    <label className="text-orange-400">CNPJ:</label>
+                    <input
+                        type="text"
+                        name="cnpj"
+                        value={userData.cnpj || ''}
+                        onChange={handleInputChange}
+                        className="bg-gray-300 p-2 rounded w-full"
+                    />
+                </div>
+                <div>
+                    <label className="text-orange-400">Cidade:</label>
+                    <input
+                        type="text"
+                        name="cidade"
+                        value={userData.endereco?.cidade || ''}
+                        onChange={handleAddressChange}
+                        className="bg-gray-300 p-2 rounded w-full"
+                    />
+                </div>
+                <div>
+                    <label className="text-orange-400">CEP:</label>
+                    <input
+                        type="text"
+                        name="cep"
+                        value={userData.endereco?.cep || ''}
+                        onChange={handleAddressChange}
+                        className="bg-gray-300 p-2 rounded w-full"
+                    />
+                </div>
+                <div>
+                    <label className="text-orange-400">Número:</label>
+                    <input
+                        type="text"
+                        name="numero"
+                        value={userData.endereco?.numero || ''}
+                        onChange={handleAddressChange}
+                        className="bg-gray-300 p-2 rounded w-full"
+                    />
+                </div>
+                <div>
+                    <label className="text-orange-400">Bairro:</label>
+                    <input
+                        type="text"
+                        name="bairro"
+                        value={userData.endereco?.bairro || ''}
+                        onChange={handleAddressChange}
+                        className="bg-gray-300 p-2 rounded w-full"
+                    />
+                </div>
+                <div>
+                    <label className="text-orange-400">Tipos de Usuário:</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                        {['Locatario', 'Locador', 'Prestador', 'admin'].map((type) => (
+                            <div
+                                key={type}
+                                onClick={() => handleUserTypeChange(type)}
+                                className={`border-2 p-4 rounded-lg cursor-pointer transition-colors duration-200
+                                    ${userData.tipousu.includes(type) ? 'bg-orange-400 border-orange-500' : 'bg-gray-300 border-gray-400'}
+                                    hover:bg-orange-400 hover:border-orange-500`}
+                            >
+                                {type}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div className="col-span-1 sm:col-span-2">
+                    <button type="submit" className="bg-orange-400 text-white p-2 rounded">
+                        Atualizar Perfil
+                    </button>
+                </div>
+            </form>
+        </div>
     );
 };
 

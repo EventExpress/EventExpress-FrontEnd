@@ -6,8 +6,6 @@ import { useRouter } from 'next/navigation'; // Importa useRouter
 import ApplicationLogo from '@/components/ApplicationLogo'; // Importe o componente da logo
 import Button from '@/components/Button';
 
-
-
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -28,10 +26,11 @@ const LoginPage = () => {
             if (response.data.token) {
                 localStorage.setItem('auth_token', response.data.token);
                 console.log('Token armazenado:', response.data.token);
-              }
+            }
 
-            // Redirecionar para a página desejada após login
+            // Redirecionar e recarregar a página para atualizar os dados da Navbar
             router.push('/paginicial');
+            router.reload(); // Força a atualização dos dados
         } catch (error) {
             if (error.response && error.response.status === 422) {
                 setError(error.response.data.message || 'Usuário não existe ou senha inválida.');
