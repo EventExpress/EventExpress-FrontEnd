@@ -59,7 +59,7 @@ const NavBar = () => {
                         </div>
 
                         <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                            <Link href="/" className="text-gray-900 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium mt-2">
+                            <Link href="/paginicial" className="text-gray-900 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium mt-2">
                                 Início
                             </Link>
                             {user?.tipousu === 'Locatário' && (

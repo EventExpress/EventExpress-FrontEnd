@@ -6,6 +6,7 @@ import ProfileForm from '../components/ProfileForm'; // Novo componente
 import PasswordUpdateForm from '../components/PasswordUpdateForm'; // Novo componente
 import DeleteAccount from '../components/DeleteAccount'; // Novo componente
 import axios from 'axios'; // Importa o axios
+import Footer from '../components/Footer'; // Importa o Footer
 
 const ProfilePage = () => {
     const [userData, setUserData] = useState({
@@ -68,6 +69,7 @@ const ProfilePage = () => {
                 <PasswordUpdateForm />
                 <DeleteAccount />
             </section>
+            <Footer /> {/* Adiciona o Footer ao final da página */}
         </>
     );
 };

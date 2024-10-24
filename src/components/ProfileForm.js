@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useRouter } from 'next/router'; // Importa o useRouter
+import { useRouter } from 'next/router';
 
 const ProfileForm = () => {
     const [userData, setUserData] = useState({
@@ -17,11 +17,12 @@ const ProfileForm = () => {
             numero: '',
             bairro: '',
         },
-        tipousu: [],
+        tipousu: [], // Array para múltiplas seleções
     });
 
-    const router = useRouter(); // Inicializa o router
+    const router = useRouter();
 
+    // Função para buscar os dados do usuário
     const fetchUserData = async () => {
         const token = localStorage.getItem('auth_token');
         if (!token) {
@@ -38,6 +39,7 @@ const ProfileForm = () => {
                 timeout: 10000,
             });
             const { user } = response.data;
+            // Atualiza o estado com os dados do usuário
             setUserData({
                 id: user.id,
                 nome: user.nome,
@@ -47,6 +49,7 @@ const ProfileForm = () => {
                 datanasc: user.datanasc,
                 cnpj: user.cnpj,
                 endereco: user.endereco,
+                // Preenche o tipo de usuário aqui
                 tipousu: user.tipousu || [],
             });
         } catch (error) {
@@ -56,8 +59,9 @@ const ProfileForm = () => {
     };
 
     useEffect(() => {
+        // Chama a função apenas uma vez ao montar o componente
         fetchUserData();
-    }, []);
+    }, []); // Dependências vazias garantem que isso rode apenas uma vez
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -100,7 +104,7 @@ const ProfileForm = () => {
 
             if (response.status === 200) {
                 alert('Perfil atualizado com sucesso');
-                router.push('/paginicial'); // Redireciona para a página inicial após a atualização
+                router.push('/paginicial');
             } else {
                 console.error('Erro ao atualizar o perfil:', response.data);
                 throw new Error('Erro ao atualizar o perfil');
@@ -115,9 +119,9 @@ const ProfileForm = () => {
         setUserData((prevData) => {
             const { tipousu } = prevData;
             if (tipousu.includes(type)) {
-                return { ...prevData, tipousu: tipousu.filter((t) => t !== type) }; // Remove o tipo se já estiver selecionado
+                return { ...prevData, tipousu: tipousu.filter((t) => t !== type) };
             } else {
-                return { ...prevData, tipousu: [...tipousu, type] }; // Adiciona o tipo
+                return { ...prevData, tipousu: [...tipousu, type] };
             }
         });
     };
@@ -229,7 +233,7 @@ const ProfileForm = () => {
                 <div>
                     <label className="text-orange-400">Tipos de Usuário:</label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
-                        {['Locatario', 'Locador', 'Prestador', 'admin'].map((type) => (
+                        {['Locatario', 'Locador', 'Prestador'].map((type) => (
                             <div
                                 key={type}
                                 onClick={() => handleUserTypeChange(type)}

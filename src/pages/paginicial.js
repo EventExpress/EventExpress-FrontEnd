@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import NavBar from '../components/NavBar';
 import { useSession } from 'next-auth/react';
 import axios from 'axios';
+import Footer from '../components/Footer';
 
 const Paginicial = () => {
     const { data: session, status } = useSession(); // Obtém a sessão do usuário
@@ -59,9 +60,9 @@ const Paginicial = () => {
     }, [session, status]);
 
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+        <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col">
             <NavBar user={session?.user} />
-            <div className="py-12">
+            <div className="flex-grow py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <h1 className="text-2xl font-semibold mb-4 text-orange-500">Anúncios</h1>
@@ -100,6 +101,7 @@ const Paginicial = () => {
                     </div>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 };
