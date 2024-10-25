@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../app/context/AuthContext'; // Ajuste aqui
 import NavBar from '../components/NavBar';
+import Footer from '../components/Footer'; // Importando o Footer
 import dynamic from 'next/dynamic';
 
 const Relatorios = () => {
@@ -34,7 +35,7 @@ const Relatorios = () => {
             { data: '2024-09-09' },
         ],
         servicos: [
-            { nome: 'Catering' },
+            { nome: 'Motorista' },
             { nome: 'Decoração' },
             { nome: 'Segurança' },
             { nome: 'Fotografia' },
@@ -54,7 +55,6 @@ const Relatorios = () => {
     const [abaAtiva, setAbaAtiva] = useState('locatario'); 
 
     const processarDados = () => {
-        
         const categoriasContagem = dadosBrutos.anuncios.reduce((acc, anuncio) => {
             acc[anuncio.categoria] = (acc[anuncio.categoria] || 0) + Math.floor(Math.random() * 10) + 1; 
             return acc;
@@ -64,7 +64,6 @@ const Relatorios = () => {
             quantidade: categoriasContagem[categoria],
         }));
 
-        // Contagem de locações por mês
         const locacoesPorMesContagem = dadosBrutos.locacoes.reduce((acc, locacao) => {
             const mes = new Date(locacao.data).toLocaleString('default', { month: 'long', year: 'numeric' });
             acc[mes] = (acc[mes] || 0) + Math.floor(Math.random() * 8) + 1; 
@@ -75,7 +74,6 @@ const Relatorios = () => {
             quantidade: locacoesPorMesContagem[mes],
         }));
 
-        // Contagem de serviços mais contratados
         const servicosContagem = dadosBrutos.servicos.reduce((acc, servico) => {
             acc[servico.nome] = (acc[servico.nome] || 0) + Math.floor(Math.random() * 8) + 1; 
             return acc;
@@ -85,10 +83,8 @@ const Relatorios = () => {
             quantidade: servicosContagem[servico],
         }));
 
-        
         const lucrosAnuncios = [2000, 3000, 2500, 4000, 3500, 5000];
 
-        
         setDadosGraficos({
             categoriasAnuncios,
             locacoesPorMes,
@@ -104,11 +100,11 @@ const Relatorios = () => {
     }, []);
 
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+        <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col">
             <NavBar user={user} />
-            <div className="py-12">
+            <div className="flex-grow py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 flex">
-                    <div className="w-1/4 mr-4"> {/* Sidebar com botões à esquerda */}
+                    <div className="w-1/4 mr-4"> 
                         <h2 className="text-lg font-semibold mb-4">Navegação</h2>
                         <button
                             onClick={() => setAbaAtiva('locatario')}
@@ -123,20 +119,16 @@ const Relatorios = () => {
                             Admin
                         </button>
                     </div>
-                    <div className="w-3/4"> {/* Área de conteúdo principal */}
+                    <div className="w-3/4">
                         <h1 className="text-2xl font-semibold mb-4 text-orange-500">Relatórios</h1>
 
-                        {/* Conteúdo das abas */}
                         {abaAtiva === 'locatario' ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Gráfico de categorias de anúncios mais locados */}
                                 <div className="bg-white dark:bg-gray-700 rounded-lg shadow-md p-4">
                                     <h2 className="text-lg font-semibold mb-2">Categorias de Anúncios Mais Locados</h2>
                                     <Chart
                                         options={{
-                                            chart: {
-                                                type: 'pie',
-                                            },
+                                            chart: { type: 'pie' },
                                             labels: dadosGraficos.categoriasAnuncios.map(item => item.categoria),
                                         }}
                                         series={dadosGraficos.categoriasAnuncios.map(item => item.quantidade)}
@@ -144,44 +136,26 @@ const Relatorios = () => {
                                         width="100%"
                                     />
                                 </div>
-
-                                {/* Gráfico de locações por mês */}
                                 <div className="bg-white dark:bg-gray-700 rounded-lg shadow-md p-4">
                                     <h2 className="text-lg font-semibold mb-2">Locações por Mês</h2>
                                     <Chart
                                         options={{
-                                            chart: {
-                                                type: 'bar',
-                                            },
-                                            xaxis: {
-                                                categories: dadosGraficos.locacoesPorMes.map(item => item.mes),
-                                            },
+                                            chart: { type: 'bar' },
+                                            xaxis: { categories: dadosGraficos.locacoesPorMes.map(item => item.mes) },
                                         }}
-                                        series={[{
-                                            name: 'Locações',
-                                            data: dadosGraficos.locacoesPorMes.map(item => item.quantidade),
-                                        }]}
+                                        series={[{ name: 'Locações', data: dadosGraficos.locacoesPorMes.map(item => item.quantidade) }]}
                                         type="bar"
                                         width="100%"
                                     />
                                 </div>
-
-                                {/* Gráfico de serviços mais contratados */}
                                 <div className="bg-white dark:bg-gray-700 rounded-lg shadow-md p-4">
                                     <h2 className="text-lg font-semibold mb-2">Serviços Mais Contratados</h2>
                                     <Chart
                                         options={{
-                                            chart: {
-                                                type: 'bar',
-                                            },
-                                            xaxis: {
-                                                categories: dadosGraficos.servicosMaisContratados.map(item => item.servico),
-                                            },
+                                            chart: { type: 'bar' },
+                                            xaxis: { categories: dadosGraficos.servicosMaisContratados.map(item => item.servico) },
                                         }}
-                                        series={[{
-                                            name: 'Contratações',
-                                            data: dadosGraficos.servicosMaisContratados.map(item => item.quantidade),
-                                        }]}
+                                        series={[{ name: 'Contratações', data: dadosGraficos.servicosMaisContratados.map(item => item.quantidade) }]}
                                         type="bar"
                                         width="100%"
                                     />
@@ -189,43 +163,26 @@ const Relatorios = () => {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Gráfico de lucros de anúncios */}
                                 <div className="bg-white dark:bg-gray-700 rounded-lg shadow-md p-4">
                                     <h2 className="text-lg font-semibold mb-2">Lucros de Anúncios</h2>
                                     <Chart
                                         options={{
-                                            chart: {
-                                                type: 'line',
-                                            },
-                                            xaxis: {
-                                                categories: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho'], 
-                                            },
+                                            chart: { type: 'line' },
+                                            xaxis: { categories: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho'] },
                                         }}
-                                        series={[{
-                                            name: 'Lucros',
-                                            data: dadosGraficos.lucrosAnuncios, 
-                                        }]}
+                                        series={[{ name: 'Lucros', data: dadosGraficos.lucrosAnuncios }]}
                                         type="line"
                                         width="100%"
                                     />
                                 </div>
-
-                                {/* Gráfico de lucros por tipo de serviço */}
                                 <div className="bg-white dark:bg-gray-700 rounded-lg shadow-md p-4">
                                     <h2 className="text-lg font-semibold mb-2">Lucros por Tipo de Serviço</h2>
                                     <Chart
                                         options={{
-                                            chart: {
-                                                type: 'bar',
-                                            },
-                                            xaxis: {
-                                                categories: ['Catering', 'Decoração', 'Segurança', 'Fotografia'],
-                                            },
+                                            chart: { type: 'bar' },
+                                            xaxis: { categories: ['Motorista', 'Decoração', 'Segurança', 'Fotografia'] },
                                         }}
-                                        series={[{
-                                            name: 'Lucros',
-                                            data: [1000, 1200, 900, 1500], 
-                                        }]}
+                                        series={[{ name: 'Lucros', data: [1200, 1800, 2200, 1500] }]}
                                         type="bar"
                                         width="100%"
                                     />
@@ -235,6 +192,7 @@ const Relatorios = () => {
                     </div>
                 </div>
             </div>
+            <Footer /> {/* Adicionando o Footer */}
         </div>
     );
 };

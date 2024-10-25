@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import NavBar from '../components/NavBar';
+import Footer from '../components/Footer';
 import axios from 'axios';
 
 const HomePage = () => {
@@ -13,13 +14,11 @@ const HomePage = () => {
             setError(null);
 
             try {
-                // Verifica se a variável de ambiente está configurada corretamente
                 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
                 if (!backendUrl) {
                     throw new Error('A URL do backend não está configurada.');
                 }
 
-                // Faz a requisição à rota que não exige autenticação
                 const response = await axios.get(`${backendUrl}/api/anuncios/noauth`, {
                     headers: {
                         'Content-Type': 'application/json',
@@ -40,9 +39,9 @@ const HomePage = () => {
     }, []);
 
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+        <div className="flex flex-col min-h-screen">
             <NavBar />
-            <div className="py-12">
+            <div className="flex-grow py-12 bg-gray-100 dark:bg-gray-900">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <h1 className="text-2xl font-semibold mb-4 text-orange-500">Anúncios</h1>
@@ -85,6 +84,7 @@ const HomePage = () => {
                     </div>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 };

@@ -1,5 +1,7 @@
 import React from 'react';
 import ApplicationLogo from '../components/ApplicationLogo'; // Importa a logo
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // Importa o FontAwesomeIcon
+import { faFacebook, faInstagram, faTwitter } from '@fortawesome/free-brands-svg-icons'; // Importa os ícones de redes sociais
 
 const Footer = () => {
     return (
@@ -22,9 +24,21 @@ const Footer = () => {
                 <div className="w-full sm:w-1/3 md:w-1/4 mb-4"> {/* Reduzido o margin bottom */}
                     <h4 className="text-lg font-semibold mb-1">Redes Sociais</h4> {/* Reduzido o margin bottom */}
                     <ul className="space-y-1"> {/* Reduzido o espaçamento entre itens */}
-                        <li><a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors duration-200">Facebook</a></li>
-                        <li><a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors duration-200">Instagram</a></li>
-                        <li><a href="https://x.com" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors duration-200">Twitter</a></li>
+                        <li>
+                            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-orange-500 transition-colors duration-200">
+                                <FontAwesomeIcon icon={faFacebook} className="mr-2" /> Facebook
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-orange-500 transition-colors duration-200">
+                                <FontAwesomeIcon icon={faInstagram} className="mr-2" /> Instagram
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-orange-500 transition-colors duration-200">
+                                <FontAwesomeIcon icon={faTwitter} className="mr-2" /> Twitter
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
