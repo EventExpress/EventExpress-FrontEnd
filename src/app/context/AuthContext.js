@@ -1,88 +1,84 @@
-// src/context/AuthContext.js
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import axios from 'axios'; // Certifique-se de que o axios está instalado
+import { createContext, useState, useEffect, useContext } from 'react';
+import axios from 'axios';
 import { useRouter } from 'next/router';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const router = useRouter();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [anuncios, setAnuncios] = useState([]);
+  const router = useRouter();
 
-    useEffect(() => {
-        const fetchUser = async () => {
-            const token = localStorage.getItem('auth_token');
+  useEffect(() => {
+    const fetchUserAndAnuncios = async () => {
+      const token = localStorage.getItem('auth_token');
 
-            if (token) {
-                try {
-                    const response = await axios.get('http://localhost:8000/api/user/profile', {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    });
-                    console.log('Dados do usuário:', response.data); // Verifique os dados aqui
-                    setUser(response.data.user); // Certifique-se de que isso contém o tipo
-                } catch (err) {
-                    console.error('Erro ao buscar o perfil do usuário:', err);
-                    setError('Erro ao buscar o perfil do usuário.');
-                    setUser(null); // Se houver erro, defina o usuário como nulo
-                }
-            }
-            setLoading(false);
-        };
-
-        fetchUser();
-    }, []); // O array de dependências vazio faz a requisição apenas uma vez ao montar o componente
-
-    const login = async (credentials) => {
-        setLoading(true);
+      if (token) {
         try {
-            const response = await axios.post('http://localhost:8000/api/login', credentials);
-            const { token, user } = response.data;
+          // Busca o usuário autenticado
+          const userResponse = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/profile`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          setUser(userResponse.data);
 
-            localStorage.setItem('auth_token', token);
-            setUser(user);
-            router.push('/paginicial');
-        } catch (err) {
-            console.error('Erro ao fazer login:', err);
-            setError('Falha ao fazer login. Verifique suas credenciais.');
-        } finally {
-            setLoading(false);
+          // Busca os anúncios autenticados
+          const anunciosResponse = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/anuncios`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          // Ajuste aqui: use anunciosResponse.data.anuncios para setar o estado
+          setAnuncios(anunciosResponse.data.anuncios); // Agora estamos pegando o array de anúncios
+          console.log("Dados dos anúncios:", anunciosResponse.data.anuncios); // Verifica se os anúncios estão sendo recebidos corretamente
+        } catch (error) {
+          console.error('Erro ao buscar usuário ou anúncios:', error);
+          router.push('/login');
         }
+      } else {
+        router.push('/login');
+      }
+
+      setLoading(false); // Mova para fora do bloco if para garantir que está sendo chamado
     };
 
-    const logout = () => {
-        localStorage.removeItem('auth_token');
-        setUser(null);
-        setError(null);
-        router.push('/'); // Redireciona para a página inicial após logout
-    };
+    fetchUserAndAnuncios();
+  }, []); // Adicionando o array vazio para garantir que o efeito só rode uma vez
 
-    const updateUser = async () => {
-        const token = localStorage.getItem('auth_token');
-        if (token) {
-            try {
-                const response = await axios.get('http://localhost:8000/api/user/profile', {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                setUser(response.data.user); // Atualiza o estado do usuário
-            } catch (err) {
-                console.error('Erro ao atualizar o perfil do usuário:', err);
-                setUser(null); // Se houver erro, defina o usuário como nulo
-            }
-        }
-    };
+  const login = async (email, password) => {
+    setLoading(true);
+    try {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`, {
+        email,
+        password,
+      });
+      localStorage.setItem('auth_token', response.data.token);
+      setUser(response.data.user);
+      router.push('/');
+    } catch (error) {
+      console.error('Erro ao fazer login:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <AuthContext.Provider value={{ user, loading, error, login, logout, updateUser }}>
-            {loading ? <div>Carregando...</div> : children}
-            {error && <div className="error">{error}</div>}
-        </AuthContext.Provider>
-    );
+  const logout = () => {
+    localStorage.removeItem('auth_token');
+    setUser(null);
+    router.push('/login');
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, loading, anuncios, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  return useContext(AuthContext);
+};
