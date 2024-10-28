@@ -300,7 +300,7 @@ const RegisterPage = () => {
 
                 <div className="mt-4 text-center text-white">
                 Já tem uma conta?
-                    <Link href="/login" className="underline  text-orange-500"> Faça login</Link>
+                    <Link href="/login" className="underline  text-orange-500">Faça login</Link>
                 </div>
             </form>
         </div>

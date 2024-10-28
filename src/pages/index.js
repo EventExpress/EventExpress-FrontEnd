@@ -19,13 +19,18 @@ const HomePage = () => {
                     throw new Error('A URL do backend não está configurada.');
                 }
 
+                console.log("Backend URL:", backendUrl);
+
                 const response = await axios.get(`${backendUrl}/api/anuncios/noauth`, {
                     headers: {
                         'Content-Type': 'application/json',
                     },
                 });
 
-                setAnuncios(response.data);
+                console.log("Resposta da API:", response.data);
+                
+                setAnuncios(response.data.anuncios);
+
             } catch (error) {
                 const errorMessage = error.response?.data?.message || 'Erro ao buscar anúncios';
                 setError(errorMessage);
@@ -65,8 +70,12 @@ const HomePage = () => {
                                         )}
                                         <p className="text-gray-700 dark:text-gray-300">Capacidade: {anuncio.capacidade}</p>
                                         <p className="text-gray-700 dark:text-gray-300">{anuncio.descricao}</p>
-                                        <p className="text-gray-700 dark:text-gray-300">Locador: {anuncio.usuario.nome}</p>
-                                        <p className="text-gray-700 dark:text-gray-300">Valor: R$ {anuncio.valor.toFixed(2)}</p>
+                                        <p className="text-gray-700 dark:text-gray-300">
+                                            Locador: {anuncio.usuario ? anuncio.usuario.nome : 'Usuário desconhecido'}
+                                        </p>
+                                        <p className="text-gray-700 dark:text-gray-300">
+                                            Valor: R$ {typeof anuncio.valor === 'number' ? anuncio.valor.toFixed(2) : 'Valor inválido'}
+                                        </p>
                                         <div className="mt-4">
                                             <a
                                                 href={`/reservar/${anuncio.id}`}

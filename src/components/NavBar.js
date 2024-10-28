@@ -1,45 +1,44 @@
-// src/components/NavBar.js
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ApplicationLogo from './ApplicationLogo';
-import { useAuth } from 'src/app/context/AuthContext.js';
+import { useAuth } from 'src/app/context/AuthContext';
 import api from '@/services/api';
 
 const NavBar = () => {
-    const { user, loading, logout, updateUser } = useAuth();
+    const { user, loading, logout } = useAuth();
     const [searchQuery, setSearchQuery] = useState('');
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    const [isProfileLoaded, setIsProfileLoaded] = useState(false);
 
+    // Effect to close dropdown on click outside
     useEffect(() => {
-        const handleUserUpdate = async () => {
-            if (user && !isProfileLoaded) {
-                try {
-                    await updateUser();
-                    setIsProfileLoaded(true);
-                } catch (error) {
-                    console.error('Erro ao atualizar o perfil:', error);
-                }
+        const handleClickOutside = (event) => {
+            if (dropdownOpen && !event.target.closest('.dropdown')) {
+                setDropdownOpen(false);
             }
         };
 
-        handleUserUpdate();
-    }, [user, isProfileLoaded]);
+        document.addEventListener('click', handleClickOutside);
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, [dropdownOpen]);
 
-    const handleLogout = () => {
-        logout();
-        setIsProfileLoaded(false);
+    const handleLogout = async () => {
+        await logout();
     };
 
     const handleSearchSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await api.get('/anuncios', {
+            const response = await api.get('http://localhost:8000/api/anuncios', {
                 params: { query: searchQuery },
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
             });
             console.log('Resultados da busca:', response.data);
         } catch (error) {
-            console.error('Erro ao buscar anúncios:', error);
+            console.error('Erro ao buscar anúncios:', error.message);
         }
     };
 
@@ -50,14 +49,11 @@ const NavBar = () => {
     return (
         <nav className="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-16">
-                    <div className="flex">
-                        <div className="shrink-0 flex items-center">
-                            <Link href="/">
-                                <ApplicationLogo className="block h-9 w-auto fill-current text-orange-400 dark:text-gray-200" />
-                            </Link>
-                        </div>
-
+                <div className="flex justify-between items-center h-16">
+                    <div className="flex items-center">
+                        <Link href="/">
+                            <ApplicationLogo className="block h-9 w-auto fill-current text-orange-400 dark:text-gray-200" />
+                        </Link>
                         <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                             <Link href="/paginicial" className="text-gray-900 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium mt-2">
                                 Início
@@ -82,14 +78,13 @@ const NavBar = () => {
                                     Meus Serviços
                                 </Link>
                             )}
-                            {/* Link para a página de relatórios */}
                             <Link href="/relatorios" className="text-gray-900 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium mt-2">
                                 Relatórios
                             </Link>
                         </div>
                     </div>
 
-                    <form onSubmit={handleSearchSubmit} className="flex items-center justify-center">
+                    <form onSubmit={handleSearchSubmit} className="flex items-center">
                         <input
                             type="text"
                             name="search"
@@ -98,7 +93,7 @@ const NavBar = () => {
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full px-4 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                         />
-                        <button type="submit" className="ml-3 bg-orange-500 hover:bg-orange-600 focus:bg-orange-600 focus:ring-orange-500 text-white px-4 py-2 rounded-md">
+                        <button type="submit" className="ml-3 bg-orange-500 hover:bg-orange-600 focus:bg-orange-600 text-white px-4 py-2 rounded-md">
                             Buscar
                         </button>
                     </form>
@@ -107,14 +102,9 @@ const NavBar = () => {
                         {loading ? (
                             <span className="text-gray-900">Carregando...</span>
                         ) : user ? (
-                            <div className="relative">
+                            <div className="relative dropdown">
                                 <button onClick={toggleDropdown} className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-orange-400 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
-                                    <div>{user.nome}</div>
-                                    <div className="ml-1">
-                                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                                        </svg>
-                                    </div>
+                                    <span>{user.user.nome}</span>
                                 </button>
 
                                 {dropdownOpen && (

@@ -4,7 +4,7 @@ const DeleteAccount = ({ userId }) => {
         const confirmDelete = confirm('Essa ação é irreversível. Você tem certeza que deseja deletar sua conta?');
         if (!confirmDelete) return;
 
-        const token = localStorage.getItem('auth_token');
+        const token = localStorage.getItem('token');
         if (!token) {
             // Redirecionar para login se o token não estiver presente
             window.location.href = '/login';
@@ -27,7 +27,7 @@ const DeleteAccount = ({ userId }) => {
             }
 
             alert('Conta deletada com sucesso');
-            localStorage.removeItem('auth_token');
+            localStorage.removeItem('token');
             window.location.href = '/login';
         } catch (error) {
             console.error('Erro na requisição de deleção de conta:', error);

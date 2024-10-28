@@ -24,7 +24,7 @@ const ProfileForm = () => {
 
     // Função para buscar os dados do usuário
     const fetchUserData = async () => {
-        const token = localStorage.getItem('auth_token');
+        const token = localStorage.getItem('token');
         if (!token) {
             alert('Token de autenticação não encontrado.');
             return;
@@ -84,7 +84,7 @@ const ProfileForm = () => {
 
     const handleProfileUpdate = async (e) => {
         e.preventDefault();
-        const token = localStorage.getItem('auth_token');
+        const token = localStorage.getItem('token');
         if (!token) {
             alert('Token de autenticação não encontrado.');
             return;

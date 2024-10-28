@@ -15,7 +15,8 @@ const CreateAnuncio = () => {
         capacidade: '',
         descricao: '',
         valor: '',
-        agenda: '',
+        dataInicio: '',
+        dataFim: '',
         categoriaId: [],
         imagens: [],
     });
@@ -25,40 +26,36 @@ const CreateAnuncio = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [checkboxOpen, setCheckboxOpen] = useState(false);
 
+    // Fetching available categories
     const fetchCategorias = async () => {
         try {
-            const token = localStorage.getItem('auth_token');
-            console.log('Token:', token); // Verifique se o token está aqui
-          
+            const token = localStorage.getItem('token');
             if (!token) {
-              console.error('Token não encontrado!');
-              return;
+                console.error('Token não encontrado!');
+                return;
             }
             const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/categoria`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
                 },
             });
 
-            // Verifique a estrutura da resposta
-            console.log('Categorias recebidas:', response.data);
             if (Array.isArray(response.data)) {
-                setCategorias(response.data); // Se a resposta for um array
+                setCategorias(response.data);
             } else if (response.data.categorias) {
-                setCategorias(response.data.categorias); // Se a resposta for um objeto com categorias
+                setCategorias(response.data.categorias);
             }
         } catch (error) {
             console.error('Erro ao buscar categorias:', error);
         }
     };
 
-    // Chama fetchCategorias quando o componente é montado
     useEffect(() => {
         fetchCategorias();
     }, []);
 
+    // Handling input changes
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
@@ -91,6 +88,7 @@ const CreateAnuncio = () => {
         });
     };
 
+    // Handling form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
         setErrors({});
@@ -120,7 +118,8 @@ const CreateAnuncio = () => {
                     capacidade: '',
                     descricao: '',
                     valor: '',
-                    agenda: '',
+                    dataInicio: '',
+                    dataFim: '',
                     categoriaId: [],
                     imagens: [],
                 });
@@ -147,7 +146,7 @@ const CreateAnuncio = () => {
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6 block mt-1 w-full focus:border-orange-600 focus:ring-orange-500 rounded-md">
+                        <div className="p-6">
                             {Object.keys(errors).length > 0 && (
                                 <div className="mb-4 font-medium text-sm text-red-600">
                                     <strong>Erros:</strong>
@@ -181,6 +180,7 @@ const CreateAnuncio = () => {
                                         />
                                     </div>
                                 ))}
+
                                 <div className="mt-4">
                                     <label htmlFor="descricao" className="text-orange-500">Descrição:</label>
                                     <textarea
@@ -194,12 +194,25 @@ const CreateAnuncio = () => {
                                 </div>
 
                                 <div className="mt-4">
-                                    <label htmlFor="agenda" className="text-orange-500">Agenda:</label>
+                                    <label htmlFor="dataInicio" className="text-orange-500">Data de Início:</label>
                                     <input
                                         type="date"
-                                        name="agenda"
-                                        id="agenda"
-                                        value={formData.agenda}
+                                        name="dataInicio"
+                                        id="dataInicio"
+                                        value={formData.dataInicio}
+                                        onChange={handleChange}
+                                        required
+                                        className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
+                                    />
+                                </div>
+
+                                <div className="mt-4">
+                                    <label htmlFor="dataFim" className="text-orange-500">Data de Fim:</label>
+                                    <input
+                                        type="date"
+                                        name="dataFim"
+                                        id="dataFim"
+                                        value={formData.dataFim}
                                         onChange={handleChange}
                                         required
                                         className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
@@ -245,9 +258,9 @@ const CreateAnuncio = () => {
                                     />
                                 </div>
 
-                                <Button type="submit" disabled={isLoading} className="mt-6">
-                                    {isLoading ? 'Criando...' : 'Criar Anúncio'}
-                                </Button>
+                                <div className="mt-6">
+                                    <Button type="submit" isLoading={isLoading}>Criar Anúncio</Button>
+                                </div>
                             </form>
                         </div>
                     </div>

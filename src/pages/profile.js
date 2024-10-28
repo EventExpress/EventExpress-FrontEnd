@@ -31,7 +31,7 @@ const ProfilePage = () => {
 
     useEffect(() => {
         const fetchUserData = async () => {
-            const token = localStorage.getItem('auth_token');
+            const token = localStorage.getItem('token');
             if (!token) {
                 router.push('/login');
                 return;

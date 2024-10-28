@@ -1,7 +1,9 @@
+// src/pages/anuncios/index.js
 import React, { useEffect, useState } from 'react';
 import NavBar from '../../components/NavBar'; // Ajuste o caminho conforme necessário
 import { useSession } from 'next-auth/react';
 import axios from 'axios';
+import AnuncioCard from '../../components/AnuncioCard'; // Importando o AnuncioCard
 
 const AnunciosPage = () => {
     const { data: session } = useSession(); // Obtém a sessão do usuário
@@ -54,25 +56,10 @@ const AnunciosPage = () => {
                         {loading && <p className="text-gray-700 dark:text-gray-300">Carregando anúncios...</p>}
                         {error && <p className="text-red-500">{error}</p>}
 
-                        {!loading && anuncios.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                {anuncios.map((anuncio) => (
-                                    <div key={anuncio.id} className="bg-white dark:bg-gray-800 p-4 rounded shadow">
-                                        <h2 className="text-xl font-bold">{anuncio.titulo}</h2>
-                                        <p className="text-gray-700 dark:text-gray-300">Cidade: {anuncio.cidade}</p>
-                                        <p className="text-gray-700 dark:text-gray-300">CEP: {anuncio.cep}</p>
-                                        <p className="text-gray-700 dark:text-gray-300">Número: {anuncio.numero}</p>
-                                        <p className="text-gray-700 dark:text-gray-300">Bairro: {anuncio.bairro}</p>
-                                        <p className="text-gray-700 dark:text-gray-300">Capacidade: {anuncio.capacidade}</p>
-                                        <p className="text-gray-700 dark:text-gray-300">Descrição: {anuncio.descricao}</p>
-                                        <p className="text-gray-700 dark:text-gray-300">Valor: R$ {anuncio.valor.toFixed(2)}</p>
-                                        <p className="text-gray-700 dark:text-gray-300">Data da Agenda: {anuncio.agenda}</p>
-                                        <p className="text-gray-700 dark:text-gray-300">Categorias: {anuncio.categoriaId.join(', ')}</p>
-                                    </div>
-                                ))}
-                            </div>
+                        {!loading ? (
+                            <AnuncioCard anuncios={anuncios} />
                         ) : (
-                            !loading && <p className="text-gray-700 dark:text-gray-300">Não possui nenhum anúncio.</p>
+                            <p className="text-gray-700 dark:text-gray-300">Não possui nenhum anúncio.</p>
                         )}
                     </div>
                 </div>

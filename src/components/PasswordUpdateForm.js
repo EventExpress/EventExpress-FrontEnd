@@ -18,7 +18,7 @@ const PasswordUpdateForm = () => {
 
     const handlePasswordUpdate = async (e) => {
         e.preventDefault();
-        const token = localStorage.getItem('auth_token');
+        const token = localStorage.getItem('token');
         if (!token) {
             // Redirecionar para login se o token não estiver presente
             return;

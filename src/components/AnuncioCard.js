@@ -1,20 +1,10 @@
-// src/components/AnuncioCard.js
 const AnuncioCard = ({ anuncio }) => {
   return (
-    <div className="anuncio-card">
-      <h2>{anuncio.titulo}</h2>
-      <p>{anuncio.descricao}</p>
-      <p>Valor: {anuncio.valor}</p>
-      <div className="imagens-anuncio">
-        {anuncio.imagens && anuncio.imagens.map((imagem) => (
-          <img
-            key={imagem.id} // Cada imagem precisa de uma chave única
-            src={imagem.image_path} // Use o caminho da imagem
-            alt={`Imagem do anúncio ${anuncio.titulo}`}
-            className="imagem-anuncio"
-          />
-        ))}
-      </div>
+    <div className="border rounded-lg shadow-md p-4">
+      <h2 className="font-bold text-xl">{anuncio.title}</h2>
+      <p>{anuncio.description}</p>
+      <p className="text-orange-500">Preço: {anuncio.price}</p>
+      <img src={anuncio.imageUrl} alt={anuncio.title} className="w-full h-32 object-cover" />
     </div>
   );
 };
