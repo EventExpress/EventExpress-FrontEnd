@@ -78,9 +78,6 @@ const NavBar = () => {
                                     Meus Serviços
                                 </Link>
                             )}
-                            <Link href="/relatorios" className="text-gray-900 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium mt-2">
-                                Relatórios
-                            </Link>
                         </div>
                     </div>
 
@@ -112,6 +109,9 @@ const NavBar = () => {
                                         <div className="py-1">
                                             <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                 Meu Perfil
+                                            </Link>
+                                            <Link href="/relatorios" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                Relatórios
                                             </Link>
                                             <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                 Sair

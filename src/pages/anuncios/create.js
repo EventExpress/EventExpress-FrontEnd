@@ -3,6 +3,8 @@ import { useRouter } from 'next/router';
 import axios from 'axios';
 import NavBar from '../../components/NavBar';
 import Button from '@/components/Button';
+import DatePicker from 'react-datepicker'; // Importando o DatePicker
+import "react-datepicker/dist/react-datepicker.css"; // Importando os estilos do DatePicker
 
 const CreateAnuncio = () => {
     const router = useRouter();
@@ -25,6 +27,8 @@ const CreateAnuncio = () => {
     const [successMessage, setSuccessMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [checkboxOpen, setCheckboxOpen] = useState(false);
+    const [datasIndisponiveis, setDatasIndisponiveis] = useState([]); // Novo estado para datas indisponíveis
+    const [dataSelecionada, setDataSelecionada] = useState(null); // Estado para a data selecionada
 
     // Fetching available categories
     const fetchCategorias = async () => {
@@ -88,6 +92,21 @@ const CreateAnuncio = () => {
         });
     };
 
+    // Adiciona a data selecionada à lista de datas indisponíveis
+    const handleAddDate = () => {
+        if (dataSelecionada && !datasIndisponiveis.includes(dataSelecionada.getTime())) {
+            setDatasIndisponiveis((prev) => [...prev, dataSelecionada.getTime()]); // Armazenar como timestamp
+            setDataSelecionada(null); // Limpa a data selecionada
+        } else {
+            alert('Data já adicionada ou inválida!'); // Alerta caso a data já esteja na lista
+        }
+    };
+
+    // Função para remover uma data da lista
+    const handleRemoveDate = (timestamp) => {
+        setDatasIndisponiveis((prev) => prev.filter(date => date !== timestamp));
+    };
+
     // Handling form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -95,10 +114,13 @@ const CreateAnuncio = () => {
         setSuccessMessage('');
         setIsLoading(true);
 
+        // Adiciona as datas indisponíveis ao formData antes de enviar
+        const formDataWithDates = { ...formData, datasIndisponiveis };
+
         try {
             const response = await axios.post(
                 `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/anuncios`,
-                formData,
+                formDataWithDates,
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -123,6 +145,7 @@ const CreateAnuncio = () => {
                     categoriaId: [],
                     imagens: [],
                 });
+                setDatasIndisponiveis([]); // Limpa as datas após o envio
                 router.push('/paginicial');
             }
         } catch (error) {
@@ -192,31 +215,33 @@ const CreateAnuncio = () => {
                                         className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
                                     />
                                 </div>
-
                                 <div className="mt-4">
-                                    <label htmlFor="dataInicio" className="text-orange-500">Data de Início:</label>
-                                    <input
-                                        type="date"
-                                        name="dataInicio"
-                                        id="dataInicio"
-                                        value={formData.dataInicio}
-                                        onChange={handleChange}
-                                        required
-                                        className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
-                                    />
-                                </div>
-
-                                <div className="mt-4">
-                                    <label htmlFor="dataFim" className="text-orange-500">Data de Fim:</label>
-                                    <input
-                                        type="date"
-                                        name="dataFim"
-                                        id="dataFim"
-                                        value={formData.dataFim}
-                                        onChange={handleChange}
-                                        required
-                                        className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
-                                    />
+                                    <label className="text-orange-500">Datas Indisponíveis:</label>
+                                    <div className="flex flex-col">
+                                        <DatePicker
+                                            selected={dataSelecionada}
+                                            onChange={(date) => setDataSelecionada(date)}
+                                            dateFormat="dd/MM/yyyy"
+                                            className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
+                                            placeholderText="Selecione uma data"
+                                        />
+                                        <div className="flex mt-2">
+                                            <button type="button" onClick={handleAddDate} className="bg-blue-500 text-white px-3 py-1 rounded text-sm">Adicionar</button>
+                                        </div>
+                                        <ul className="mt-2">
+                                            {datasIndisponiveis.map((timestamp, index) => (
+                                                <li key={index} className="flex justify-between items-center text-gray-600">
+                                                    {new Date(timestamp).toLocaleDateString()}
+                                                    <button 
+                                                        onClick={() => handleRemoveDate(timestamp)} 
+                                                        className="text-red-500 ml-2 text-xs"
+                                                    >
+                                                        Remover
+                                                    </button>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
                                 </div>
 
                                 <div className="mt-4">
@@ -246,19 +271,19 @@ const CreateAnuncio = () => {
                                 </div>
 
                                 <div className="mt-4">
-                                    <label htmlFor="imagens" className="block text-orange-500 font-semibold mb-1">Imagens</label>
+                                    <label className="text-orange-500">Imagens:</label>
                                     <input
-                                        id="imagens"
                                         type="file"
-                                        accept="image/*"
                                         multiple
+                                        accept="image/*"
                                         onChange={handleImageChange}
-                                        required
-                                        className="block w-full border border-gray-300 rounded-md p-2 focus:border-orange-500 focus:ring focus:ring-orange-500"
+                                        className="block mt-1 w-full"
                                     />
                                 </div>
 
-                                <div className="mt-6">
+                                {}
+
+                                <div className="mt-4 flex justify-end">
                                     <Button type="submit" isLoading={isLoading}>Criar Anúncio</Button>
                                 </div>
                             </form>

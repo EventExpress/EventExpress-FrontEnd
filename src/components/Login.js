@@ -95,7 +95,7 @@ const LoginPage = () => {
                         </div>
 
                         <div className="flex items-center justify-between mt-4">
-                            <Link href="/forgot-password" className="underline text-sm text-white hover:text-orange-400">Esqueceu sua senha?</Link>
+                            <Link href="/forgotpassword" className="underline text-sm text-white hover:text-orange-400">Esqueceu sua senha?</Link>
                             <Link href="/register" className="underline text-sm text-white hover:text-orange-400">Não possui cadastro?</Link>
                         </div>
 

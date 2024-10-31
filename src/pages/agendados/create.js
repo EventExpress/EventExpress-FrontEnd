@@ -5,32 +5,44 @@ import NavBar from '../../components/NavBar';
 export default function CreateReserva() {
     const [dataInicio, setDataInicio] = useState('');
     const [dataFim, setDataFim] = useState('');
-    const [adicionais, setAdicionais] = useState([]); // Para armazenar os serviços adicionais
-    const [anuncioId, setAnuncioId] = useState(''); // Adicione o ID do anúncio aqui
-    const [usuarioId, setUsuarioId] = useState(''); // Adicione o ID do usuário aqui
+    const [adicionais, setAdicionais] = useState([]);
+    const [anuncioId, setAnuncioId] = useState('');
+    const [usuarioId, setUsuarioId] = useState('');
     const [adicionalIds, setAdicionalIds] = useState([]);
+    const [datasIndisponiveis, setDatasIndisponiveis] = useState([]);
 
-    // Para buscar os serviços adicionais do backend
     useEffect(() => {
+        // Busca os adicionais
         const fetchAdicionais = async () => {
             try {
-                const response = await fetch('/api/adicionais'); // Substitua pelo endpoint correto
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
+                const response = await fetch('/api/adicionais');
+                if (!response.ok) throw new Error('Erro na resposta da rede');
                 const data = await response.json();
-                setAdicionais(data); // Assumindo que o formato de resposta é um array de objetos
+                setAdicionais(data);
             } catch (error) {
-                console.error('Error fetching adicionais:', error);
+                console.error('Erro ao buscar adicionais:', error);
+            }
+        };
+
+        // Busca as datas indisponíveis para o anúncio atual
+        const fetchDatasIndisponiveis = async () => {
+            try {
+                const response = await fetch(`/api/verifica-agenda/${anuncioId}`);
+                if (!response.ok) throw new Error('Erro na resposta da rede');
+                const data = await response.json();
+                setDatasIndisponiveis(data.datasIndisponiveis || []);
+            } catch (error) {
+                console.error('Erro ao buscar datas indisponíveis:', error);
             }
         };
 
         fetchAdicionais();
-    }, []);
+        if (anuncioId) fetchDatasIndisponiveis();
+    }, [anuncioId]);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        
+
         const reservaData = {
             data_inicio: dataInicio,
             data_fim: dataFim,
@@ -40,7 +52,7 @@ export default function CreateReserva() {
         };
 
         try {
-            const response = await fetch('/agendado', {
+            const response = await fetch('http://localhost:8000/api/agendados', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -49,14 +61,12 @@ export default function CreateReserva() {
             });
 
             if (response.ok) {
-                // Lógica para redirecionar ou mostrar sucesso
                 console.log('Reserva criada com sucesso!');
             } else {
-                // Lógica para mostrar erro
                 console.error('Erro ao criar reserva');
             }
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Erro:', error);
         }
     };
 
@@ -67,6 +77,15 @@ export default function CreateReserva() {
             }
             return [...prev, id];
         });
+    };
+
+    const isDataIndisponivel = (date) => {
+        if (!date || isNaN(new Date(date).getTime())) {
+            return false;
+        }
+        
+        const formattedDate = new Date(date).toISOString().split('T')[0];
+        return datasIndisponiveis.includes(formattedDate);
     };
 
     return (
@@ -93,6 +112,8 @@ export default function CreateReserva() {
                                         onChange={(e) => setDataInicio(e.target.value)}
                                         className="form-input mt-1 block w-full rounded-lg"
                                         required
+                                        min={new Date().toISOString().slice(0, 16)} // Data mínima é a data atual
+                                        disabled={isDataIndisponivel(dataInicio)}
                                     />
                                 </div>
 
@@ -108,6 +129,8 @@ export default function CreateReserva() {
                                         onChange={(e) => setDataFim(e.target.value)}
                                         className="form-input mt-1 block w-full rounded-lg"
                                         required
+                                        min={dataInicio} // A data de fim deve ser após a data de início
+                                        disabled={isDataIndisponivel(dataFim)}
                                     />
                                 </div>
 
