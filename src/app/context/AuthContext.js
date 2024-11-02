@@ -8,9 +8,10 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [anuncios, setAnuncios] = useState([]);
+  const [servicos, setServicos] = useState([]); // Novo estado para serviços
   const router = useRouter();
 
-  const fetchUserAndAnuncios = async () => {
+  const fetchUserAnunciosAndServicos = async () => {
     const token = localStorage.getItem('token');
 
     if (token) {
@@ -23,18 +24,23 @@ export const AuthProvider = ({ children }) => {
         });
         setUser(userResponse.data);
 
-        // Busca os anúncios do usuário
         const anunciosResponse = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/anuncios`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-
         setAnuncios(anunciosResponse.data.anuncios);
-        console.log("Dados dos anúncios:", anunciosResponse.data.anuncios);
+
+        // Busca os serviços
+        const servicosResponse = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/servicos`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setServicos(servicosResponse.data.servicos);
       } catch (error) {
-        console.error('Erro ao buscar usuário ou anúncios:', error);
-        localStorage.removeItem('token'); // Limpa o token em caso de erro
+        console.error('Erro ao buscar dados do usuário, anúncios ou serviços:', error);
+        localStorage.removeItem('token'); 
         router.push('/login');
       }
     } else {
@@ -45,7 +51,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    fetchUserAndAnuncios();
+    fetchUserAnunciosAndServicos();
   }, []);
 
   const login = async (email, password) => {
@@ -57,7 +63,7 @@ export const AuthProvider = ({ children }) => {
       });
       localStorage.setItem('token', response.data.token);
       setUser(response.data.user);
-      await fetchUserAndAnuncios(); // Atualiza o usuário e anúncios após login
+      await fetchUserAnunciosAndServicos(); // Atualiza o usuário, anúncios e serviços após login
       router.push('/');
     } catch (error) {
       console.error('Erro ao fazer login:', error);
@@ -70,12 +76,13 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
-    setAnuncios([]); // Limpa os anúncios ao sair
+    setAnuncios([]); 
+    setServicos([]); // Limpa os serviços ao sair
     router.push('/login');
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, anuncios, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, anuncios, servicos, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
