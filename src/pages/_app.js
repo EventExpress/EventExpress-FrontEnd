@@ -1,7 +1,8 @@
 // src/pages/_app.js
-import '../app/globals.css'; // Verifique se o caminho está correto
-import { AuthProvider } from 'src/app/context/AuthContext.js'; // Mantenha esta linha, se você está usando o alias
-import { SessionProvider } from 'next-auth/react'; // Se você está usando NextAuth
+import '../app/globals.css'; 
+import 'react-calendar/dist/Calendar.css';
+import { AuthProvider } from '../app/context/AuthContext';
+import { SessionProvider } from 'next-auth/react';
 
 function MyApp({ Component, pageProps }) {
     return (

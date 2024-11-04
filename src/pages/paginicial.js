@@ -9,13 +9,12 @@ const Paginicial = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const anunciosPerPage = 10; // Número de anúncios por página
+  const anunciosPerPage = 10;
   const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
 
-    // Redireciona para a página de login se o token não estiver presente
     if (!token) {
       router.push('/login');
       return;
@@ -29,23 +28,41 @@ const Paginicial = () => {
           throw new Error('A URL do backend não está configurada.');
         }
 
-        const response = await axios.get(`${backendUrl}/api/anuncios`, {
+        const anunciosResponse = await axios.get(`${backendUrl}/api/anuncios`, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         });
 
-        if (response.data && response.data.anuncios && Array.isArray(response.data.anuncios)) {
-          setAnuncios(response.data.anuncios);
+        if (anunciosResponse.data && Array.isArray(anunciosResponse.data.anuncios)) {
+          const anunciosData = anunciosResponse.data.anuncios;
+
+          // Obter dados do locador
+          const anunciosComLocadores = await Promise.all(
+            anunciosData.map(async (anuncio) => {
+              const userResponse = await axios.get(`${backendUrl}/api/user/${anuncio.user_id}`, {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                },
+              });
+              return { ...anuncio, user: userResponse.data.user };
+            })
+          );
+
+          setAnuncios(anunciosComLocadores);
         } else {
           setAnuncios([]);
           console.log('Nenhum anúncio encontrado ou estrutura inesperada.');
         }
+
       } catch (error) {
-        const errorMessage = error.response ? error.response.data.message : 'Erro ao buscar anúncios.';
+        const errorMessage = error.response
+          ? error.response.data.message || 'Erro desconhecido ao buscar dados.'
+          : 'Erro ao buscar anúncios.';
         setError(errorMessage);
-        console.error('Erro ao buscar anúncios:', error);
+        console.error('Erro ao buscar dados:', error);
       } finally {
         setLoading(false);
       }
@@ -54,13 +71,11 @@ const Paginicial = () => {
     fetchAnuncios();
   }, [router]);
 
-  // Lógica de paginação
   const indexOfLastAnuncio = currentPage * anunciosPerPage;
   const indexOfFirstAnuncio = indexOfLastAnuncio - anunciosPerPage;
   const currentAnuncios = anuncios.slice(indexOfFirstAnuncio, indexOfLastAnuncio);
 
   const handleReservar = (anuncioId) => {
-    // Redireciona para a tela de criação de agendamentos com o ID do anúncio
     router.push(`/agendados/create?anuncioId=${anuncioId}`);
   };
 
@@ -86,13 +101,28 @@ const Paginicial = () => {
                       <h2 className="text-xl font-bold">{anuncio.titulo || 'Título não disponível'}</h2>
                       <p className="text-gray-700">{anuncio.descricao || 'Descrição não disponível'}</p>
                       <p className="text-lg font-semibold text-orange-500">
-                        {anuncio.preco ? `${anuncio.preco} R$` : 'Preço não disponível'}
+                        {anuncio.valor ? `${anuncio.valor} R$` : 'Valor não disponível'}
                       </p>
-                      {anuncio.imagem && (
-                        <img src={anuncio.imagem} alt={anuncio.titulo} className="w-full h-32 object-cover mt-2" />
+                      <p className="text-gray-700">
+                        Categoria: {anuncio.categoria ? anuncio.categoria.nome : 'Categoria não disponível'}
+                      </p>
+                      {anuncio.imagens && anuncio.imagens.length > 0 ? (
+                        <img
+                          src={anuncio.imagens[0].image_path}
+                          alt={anuncio.titulo}
+                          className="w-full h-32 object-cover mt-2"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = 'https://via.placeholder.com/150';
+                          }}
+                        />
+                      ) : (
+                        <p className="text-gray-500">Imagem não disponível</p>
                       )}
                       <p className="text-gray-600 mt-2">Capacidade: {anuncio.capacidade || 'Capacidade não disponível'}</p>
-                      <p className="text-gray-600 mt-2">Locador: {anuncio.locador || 'Locador não disponível'}</p>
+                      <p className="text-gray-600 mt-2">
+                        Locador: {anuncio.user && anuncio.user.nome ? anuncio.user.nome : 'Locador não disponível'}
+                      </p>
                       <button
                         onClick={() => handleReservar(anuncio.id)}
                         className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
@@ -102,7 +132,6 @@ const Paginicial = () => {
                     </div>
                   ))}
                 </div>
-                {/* Paginação */}
                 <div className="flex justify-between mt-4">
                   <button
                     onClick={() => setCurrentPage(currentPage - 1)}

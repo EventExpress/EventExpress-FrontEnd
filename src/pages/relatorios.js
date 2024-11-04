@@ -112,12 +112,14 @@ const Relatorios = () => {
                         >
                             Locatário
                         </button>
-                        <button
-                            onClick={() => setAbaAtiva('admin')}
-                            className={`block w-full px-4 py-2 rounded-lg ${abaAtiva === 'admin' ? 'bg-orange-500 text-white' : 'bg-gray-200'}`}
-                        >
-                            Admin
-                        </button>
+                        {user?.tipo === 'admin' && ( // Verifica se o usuário é admin
+                            <button
+                                onClick={() => setAbaAtiva('admin')}
+                                className={`block w-full px-4 py-2 rounded-lg ${abaAtiva === 'admin' ? 'bg-orange-500 text-white' : 'bg-gray-200'}`}
+                            >
+                                Admin
+                            </button>
+                        )}
                     </div>
                     <div className="w-3/4">
                         <h1 className="text-2xl font-semibold mb-4 text-orange-500">Relatórios</h1>
@@ -180,9 +182,9 @@ const Relatorios = () => {
                                     <Chart
                                         options={{
                                             chart: { type: 'bar' },
-                                            xaxis: { categories: ['Motorista', 'Decoração', 'Segurança', 'Fotografia'] },
+                                            xaxis: { categories: ['Serviço A', 'Serviço B', 'Serviço C'] },
                                         }}
-                                        series={[{ name: 'Lucros', data: [1200, 1800, 2200, 1500] }]}
+                                        series={[{ name: 'Lucros', data: [5000, 7000, 3000] }]}
                                         type="bar"
                                         width="100%"
                                     />

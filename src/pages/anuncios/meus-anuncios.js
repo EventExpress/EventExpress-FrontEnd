@@ -16,12 +16,12 @@ const MeusAnuncios = () => {
 
             const token = localStorage.getItem('token');
             if (!token) {
-                // Se o token não estiver presente, redireciona para login
                 router.push('/login');
                 return;
             }
 
             try {
+                console.log('Fetching user data...');
                 const userResponse = await fetch('http://localhost:8000/api/user', {
                     method: 'GET',
                     headers: {
@@ -30,38 +30,40 @@ const MeusAnuncios = () => {
                     },
                 });
 
-                if (userResponse.ok) {
-                    const userData = await userResponse.json();
-
-                    if (userData.tipousu !== 'Locador') {
-                        // Se o usuário não for do tipo "Locador", exibe erro e não continua
-                        setErrors(['Acesso negado. Apenas locadores podem acessar esta página.']);
-                        setLoading(false);
-                        return;
-                    }
-
-                    // Busca os anúncios criados pelo locador
-                    const response = await fetch('http://localhost:8000/api/anuncio/meus-anuncios', {
-                        method: 'GET',
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                    });
-
-                    const data = await response.json();
-
-                    if (response.ok) {
-                        setAnuncios(data);
-                        if (data.length === 0) {
-                            setErrors(['Nenhum anúncio encontrado.']);
-                        }
-                    } else {
-                        setErrors(data.errors || ['Erro ao buscar anúncios.']);
-                    }
-                } else {
-                    setErrors(['Erro ao buscar informações do usuário.']);
+                // Verifica se a resposta do usuário é bem-sucedida
+                if (!userResponse.ok) {
+                    const errorData = await userResponse.json();
+                    setErrors(['Erro ao buscar informações do usuário: ' + (errorData.message || 'Erro desconhecido')]);
                     router.push('/login'); // Redireciona para login em caso de erro de autenticação
+                    return;
+                }
+
+                const userData = await userResponse.json();
+
+                if (userData.tipousu !== 'Locador') {
+                    setErrors(['Acesso negado. Apenas locadores podem acessar esta página.']);
+                    setLoading(false);
+                    return;
+                }
+
+                // Busca os anúncios criados pelo locador
+                const response = await fetch('http://localhost:8000/api/anuncio/meus-anuncios', {
+                    method: 'GET',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    setErrors(errorData.errors || ['Erro ao buscar anúncios.']);
+                } else {
+                    const data = await response.json();
+                    setAnuncios(data);
+                    if (data.length === 0) {
+                        setErrors(['Nenhum anúncio encontrado.']);
+                    }
                 }
             } catch (error) {
                 console.error('Erro ao buscar anúncios:', error);
@@ -101,7 +103,9 @@ const MeusAnuncios = () => {
                                             {anuncios.map((anuncio) => (
                                                 <div key={anuncio.id} className="bg-white dark:bg-gray-200 rounded-lg shadow-md p-4">
                                                     <p className="text-gray-900 dark:text-gray-100 font-semibold">{anuncio.titulo}</p>
-                                                    <p className="text-gray-600 dark:text-gray-400">{anuncio.endereco.cidade}, CEP: {anuncio.endereco.cep}, Número: {anuncio.endereco.numero}, {anuncio.endereco.bairro}</p>
+                                                    <p className="text-gray-600 dark:text-gray-400">
+                                                        {anuncio.endereco.cidade}, CEP: {anuncio.endereco.cep}, Número: {anuncio.endereco.numero}, {anuncio.endereco.bairro}
+                                                    </p>
                                                     <p className="text-gray-700 dark:text-gray-300">Capacidade: {anuncio.capacidade}</p>
                                                     <p className="text-gray-700 dark:text-gray-300">{anuncio.descricao}</p>
                                                     <p className="text-gray-700 dark:text-gray-300">Valor: {anuncio.valor}</p>

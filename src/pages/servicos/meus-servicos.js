@@ -1,6 +1,7 @@
 // src/pages/servicos/meus-servicos.js
 import React, { useState, useEffect } from 'react';
 import NavBar from '../../components/NavBar'; // Importa a NavBar
+import Footer from '../../components/Footer'; // Importa o Footer
 import { useRouter } from 'next/router';
 
 const MeusServicos = () => {
@@ -16,7 +17,6 @@ const MeusServicos = () => {
 
             const token = localStorage.getItem('token');
             if (!token) {
-                // Se o token não estiver presente, redireciona para login
                 router.push('/login');
                 return;
             }
@@ -30,53 +30,55 @@ const MeusServicos = () => {
                     },
                 });
 
-                if (userResponse.ok) {
-                    const userData = await userResponse.json();
+                if (!userResponse.ok) {
+                    const errorData = await userResponse.json();
+                    setErrors(['Erro ao buscar dados do usuário: ' + (errorData.message || 'Desconhecido')]);
+                    setLoading(false);
+                    return;
+                }
 
-                    if (userData.tipousu !== 'Prestador') {
-                        // Se o usuário não for do tipo "Prestador", exibe erro e não continua
-                        setErrors(['Acesso negado. Apenas prestadores podem acessar esta página.']);
-                        setLoading(false);
-                        return;
-                    }
+                const userData = await userResponse.json();
 
-                    // Busca os serviços criados pelo prestador
-                    const response = await fetch('http://localhost:8000/api/servicos/meus-servicos', {
-                        method: 'GET',
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                    });
+                if (userData.tipousu !== 'Prestador') {
+                    setErrors(['Acesso negado. Apenas prestadores podem acessar esta página.']);
+                    setLoading(false);
+                    return;
+                }
 
-                    const data = await response.json();
+                // Busca os serviços criados pelo prestador
+                const response = await fetch('http://localhost:8000/api/servicos/meus-servicos', {
+                    method: 'GET',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
 
-                    if (response.ok) {
-                        setServicos(data);
-                        if (data.length === 0) {
-                            setErrors(['Nenhum serviço encontrado.']);
-                        }
-                    } else {
-                        setErrors(data.errors || ['Erro ao buscar serviços.']);
-                    }
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    setErrors(errorData.errors || ['Erro ao buscar serviços.']);
                 } else {
-                    setErrors(['Erro ao buscar informações do usuário.']);
-                    router.push('/login'); // Redireciona para login em caso de erro de autenticação
+                    const data = await response.json();
+                    setServicos(data);
+                    if (data.length === 0) {
+                        setErrors(['Nenhum serviço encontrado.']);
+                    }
                 }
             } catch (error) {
                 console.error('Erro ao buscar serviços:', error);
                 setErrors(['Erro ao buscar serviços.']);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
 
         fetchUserServicos();
     }, [router]);
 
     return (
-        <div>
+        <div className="flex flex-col min-h-screen"> {/* Garante que o footer fique na parte inferior */}
             <NavBar /> {/* Adiciona a NavBar */}
-            <div className="py-12">
+            <div className="py-12 flex-grow"> {/* Permite que o conteúdo ocupe o espaço restante */}
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6 text-gray-900 dark:text-gray-100">
@@ -129,6 +131,7 @@ const MeusServicos = () => {
                     </div>
                 </div>
             </div>
+            <Footer /> {/* Adiciona o Footer */}
         </div>
     );
 };

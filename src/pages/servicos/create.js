@@ -15,7 +15,7 @@ const CriarServico = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const response = await fetch('http://localhost:8000/api/servicos', {
+        const response = await fetch('http://localhost:8000/api/servicos/create', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -30,9 +30,7 @@ const CriarServico = () => {
         });
 
         if (response.ok) {
-            // redirecionar ou mostrar mensagem de sucesso
         } else {
-            // lidar com erro
         }
     };
 
@@ -47,7 +45,7 @@ const CriarServico = () => {
                             <form onSubmit={handleSubmit}>
                                 {/* Campos existentes */}
                                 <div className="mb-4">
-                                    <label htmlFor="titulo" className="block text-sm font-medium text-orange-500">Nome do Adicional:</label>
+                                    <label htmlFor="titulo" className="block text-sm font-medium text-orange-500">Nome do Serviço:</label>
                                     <input
                                         type="text"
                                         name="titulo"

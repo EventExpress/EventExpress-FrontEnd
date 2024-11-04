@@ -3,8 +3,8 @@ import { useRouter } from 'next/router';
 import axios from 'axios';
 import NavBar from '../../components/NavBar';
 import Button from '@/components/Button';
-import DatePicker from 'react-datepicker'; // Importando o DatePicker
-import "react-datepicker/dist/react-datepicker.css"; // Importando os estilos do DatePicker
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
 
 const CreateAnuncio = () => {
     const router = useRouter();
@@ -17,18 +17,18 @@ const CreateAnuncio = () => {
         capacidade: '',
         descricao: '',
         valor: '',
-        dataInicio: '',
-        dataFim: '',
         categoriaId: [],
         imagens: [],
+        agenda: []
     });
+
     const [categorias, setCategorias] = useState([]);
     const [errors, setErrors] = useState({});
     const [successMessage, setSuccessMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [checkboxOpen, setCheckboxOpen] = useState(false);
-    const [datasIndisponiveis, setDatasIndisponiveis] = useState([]); // Novo estado para datas indisponíveis
-    const [dataSelecionada, setDataSelecionada] = useState(null); // Estado para a data selecionada
+    const [datasIndisponiveis, setDatasIndisponiveis] = useState([]);
+    const [dataSelecionada, setDataSelecionada] = useState(null);
 
     // Fetching available categories
     const fetchCategorias = async () => {
@@ -67,15 +67,45 @@ const CreateAnuncio = () => {
 
     const handleImageChange = async (e) => {
         const files = Array.from(e.target.files);
-        const base64Images = await Promise.all(files.map(file => convertToBase64(file)));
+        const base64Images = await Promise.all(files.map(file => convertToBase64AndResize(file, 800, 600))); // Redimensionando para 800x600
         setFormData({ ...formData, imagens: base64Images });
     };
 
-    const convertToBase64 = (file) => {
+    const convertToBase64AndResize = (file, maxWidth, maxHeight) => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
+            reader.onload = () => {
+                const img = new Image();
+                img.src = reader.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    // Calculate new dimensions while maintaining aspect ratio
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height *= maxWidth / width;
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width *= maxHeight / height;
+                            height = maxHeight;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const base64 = canvas.toDataURL('image/jpeg'); // Utilize o formato que você preferir
+                    resolve(base64);
+                };
+                img.onerror = (error) => reject(error);
+            };
             reader.onerror = (error) => reject(error);
         });
     };
@@ -92,29 +122,25 @@ const CreateAnuncio = () => {
         });
     };
 
-    // Adiciona a data selecionada à lista de datas indisponíveis
     const handleAddDate = () => {
         if (dataSelecionada && !datasIndisponiveis.includes(dataSelecionada.getTime())) {
-            setDatasIndisponiveis((prev) => [...prev, dataSelecionada.getTime()]); // Armazenar como timestamp
-            setDataSelecionada(null); // Limpa a data selecionada
+            setDatasIndisponiveis((prev) => [...prev, dataSelecionada.getTime()]);
+            setDataSelecionada(null);
         } else {
-            alert('Data já adicionada ou inválida!'); // Alerta caso a data já esteja na lista
+            alert('Data já adicionada ou inválida!');
         }
     };
 
-    // Função para remover uma data da lista
     const handleRemoveDate = (timestamp) => {
         setDatasIndisponiveis((prev) => prev.filter(date => date !== timestamp));
     };
 
-    // Handling form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
         setErrors({});
         setSuccessMessage('');
         setIsLoading(true);
 
-        // Adiciona as datas indisponíveis ao formData antes de enviar
         const formDataWithDates = { ...formData, datasIndisponiveis };
 
         try {
@@ -140,12 +166,10 @@ const CreateAnuncio = () => {
                     capacidade: '',
                     descricao: '',
                     valor: '',
-                    dataInicio: '',
-                    dataFim: '',
                     categoriaId: [],
                     imagens: [],
                 });
-                setDatasIndisponiveis([]); // Limpa as datas após o envio
+                setDatasIndisponiveis([]);
                 router.push('/paginicial');
             }
         } catch (error) {
@@ -221,7 +245,7 @@ const CreateAnuncio = () => {
                                         <DatePicker
                                             selected={dataSelecionada}
                                             onChange={(date) => setDataSelecionada(date)}
-                                            dateFormat="dd/MM/yyyy"
+                                            dateFormat="yyyy/MM/dd"
                                             className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
                                             placeholderText="Selecione uma data"
                                         />
@@ -230,18 +254,23 @@ const CreateAnuncio = () => {
                                         </div>
                                         <ul className="mt-2">
                                             {datasIndisponiveis.map((timestamp, index) => (
-                                                <li key={index} className="flex justify-between items-center text-gray-600">
+                                                <li key={index} className="flex justify-between items-center">
                                                     {new Date(timestamp).toLocaleDateString()}
-                                                    <button 
-                                                        onClick={() => handleRemoveDate(timestamp)} 
-                                                        className="text-red-500 ml-2 text-xs"
-                                                    >
-                                                        Remover
-                                                    </button>
+                                                    <button type="button" onClick={() => handleRemoveDate(timestamp)} className="text-red-500 ml-2">Remover</button>
                                                 </li>
                                             ))}
                                         </ul>
                                     </div>
+                                </div>
+
+                                <div className="mt-4">
+                                    <label className="text-orange-500">Imagens:</label>
+                                    <input
+                                        type="file"
+                                        multiple
+                                        onChange={handleImageChange}
+                                        className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
+                                    />
                                 </div>
 
                                 <div className="mt-4">
@@ -270,21 +299,8 @@ const CreateAnuncio = () => {
                                     )}
                                 </div>
 
-                                <div className="mt-4">
-                                    <label className="text-orange-500">Imagens:</label>
-                                    <input
-                                        type="file"
-                                        multiple
-                                        accept="image/*"
-                                        onChange={handleImageChange}
-                                        className="block mt-1 w-full"
-                                    />
-                                </div>
-
-                                {}
-
-                                <div className="mt-4 flex justify-end">
-                                    <Button type="submit" isLoading={isLoading}>Criar Anúncio</Button>
+                                <div className="mt-6">
+                                    <Button type="submit" loading={isLoading} disabled={isLoading}>Criar Anúncio</Button>
                                 </div>
                             </form>
                         </div>

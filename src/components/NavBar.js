@@ -8,12 +8,24 @@ const NavBar = () => {
     const { user, loading, logout } = useAuth();
     const [searchQuery, setSearchQuery] = useState('');
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [userType, setUserType] = useState('Locatário');
+    const [userTypeDropdown, setUserTypeDropdown] = useState(false);
 
-    // Effect to close dropdown on click outside
+    // Carregar o tipo de usuário do localStorage ao montar o componente
+    useEffect(() => {
+        const storedUserType = localStorage.getItem('userType');
+        if (storedUserType) {
+            setUserType(storedUserType);
+        } else if (user) {
+            setUserType(user.tipousu || 'Locatário');
+        }
+    }, [user]);
+
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (dropdownOpen && !event.target.closest('.dropdown')) {
+            if ((dropdownOpen || userTypeDropdown) && !event.target.closest('.dropdown')) {
                 setDropdownOpen(false);
+                setUserTypeDropdown(false);
             }
         };
 
@@ -21,7 +33,7 @@ const NavBar = () => {
         return () => {
             document.removeEventListener('click', handleClickOutside);
         };
-    }, [dropdownOpen]);
+    }, [dropdownOpen, userTypeDropdown]);
 
     const handleLogout = async () => {
         await logout();
@@ -46,6 +58,17 @@ const NavBar = () => {
         setDropdownOpen(!dropdownOpen);
     };
 
+    const toggleUserTypeDropdown = () => {
+        setUserTypeDropdown(!userTypeDropdown);
+    };
+
+    const handleUserTypeChange = (type) => {
+        setUserType(type);
+        setUserTypeDropdown(false);
+        // Salvar o tipo de usuário no localStorage
+        localStorage.setItem('userType', type);
+    };
+
     return (
         <nav className="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -58,26 +81,6 @@ const NavBar = () => {
                             <Link href="/paginicial" className="text-gray-900 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium mt-2">
                                 Início
                             </Link>
-                            {user?.tipousu === 'Locatário' && (
-                                <Link href="/reservas" className="text-gray-900 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium mt-2">
-                                    Minhas Reservas
-                                </Link>
-                            )}
-                            {user?.tipousu === 'Locador' && (
-                                <>
-                                    <Link href="/meus-anuncios" className="text-gray-900 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium mt-2">
-                                        Meus Anúncios
-                                    </Link>
-                                    <Link href="/anuncio/create" className="text-gray-900 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium mt-2">
-                                        Criar Anúncio
-                                    </Link>
-                                </>
-                            )}
-                            {user?.tipousu === 'Prestador' && (
-                                <Link href="/meus-servicos" className="text-gray-900 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium mt-2">
-                                    Meus Serviços
-                                </Link>
-                            )}
                         </div>
                     </div>
 
@@ -100,7 +103,7 @@ const NavBar = () => {
                             <span className="text-gray-900">Carregando...</span>
                         ) : user ? (
                             <div className="relative dropdown">
-                                <button onClick={toggleDropdown} className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-orange-400 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
+                                <button onClick={toggleDropdown} className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-orange-400 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
                                     <span>{user.user.nome}</span>
                                 </button>
 
@@ -113,12 +116,59 @@ const NavBar = () => {
                                             <Link href="/relatorios" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                 Relatórios
                                             </Link>
+                                            {userType === 'Locatário' && (
+                                                <Link href="agendados/visualizar" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                    Minhas Reservas
+                                                </Link>
+                                            )}
+                                            {userType === 'Locador' && (
+                                                <>
+                                                    <Link href="/anuncios/meus-anuncios" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                        Meus Anúncios
+                                                    </Link>
+                                                    <Link href="/anuncios/create" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                        Criar Anúncio
+                                                    </Link>
+                                                </>
+                                            )}
+                                            {userType === 'Prestador' && (
+                                                <>
+                                                    <Link href="/servicos/meus-servicos" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                        Meus Serviços
+                                                    </Link>
+                                                    <Link href="/servicos/create" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                        Criar Serviço
+                                                    </Link>
+                                                </>
+                                            )}
                                             <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                 Sair
                                             </button>
                                         </div>
                                     </div>
                                 )}
+
+                                <div className="relative inline-block ml-3">
+                                    <button onClick={toggleUserTypeDropdown} className="px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 rounded-md focus:outline-none">
+                                        {userType}
+                                    </button>
+
+                                    {userTypeDropdown && (
+                                        <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-10">
+                                            {['Locatário', 'Locador', 'Prestador'].map((type) => (
+                                                <button
+                                                    key={type}
+                                                    onClick={() => handleUserTypeChange(type)}
+                                                    className={`block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 ${
+                                                        userType === type ? 'font-semibold text-orange-500 bg-white' : 'bg-white'
+                                                    }`}
+                                                >
+                                                    {type}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         ) : (
                             <div className="flex space-x-4">

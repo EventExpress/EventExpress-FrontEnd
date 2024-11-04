@@ -52,3 +52,43 @@ button:hover {
     text-wrap: balance; /* Utilidade personalizada */
   }
 }
+
+/* Estilos personalizados para o calendário */
+.custom-calendar {
+  background-color: #f8f9fa; 
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.custom-calendar .react-calendar__navigation button {
+  color: #FF7F50; 
+  font-weight: bold;
+}
+
+.custom-calendar .react-calendar__tile {
+  color: #333; 
+}
+
+.custom-calendar .react-calendar__tile--now {
+  background-color: #FFDDC1 !important; 
+  border-radius: 50%;
+  color: #333;
+}
+
+.custom-calendar .react-calendar__tile--active {
+  background-color: #FFA07A !important; 
+  color: #fff !important;
+  border-radius: 50%;
+}
+
+.custom-calendar .react-calendar__tile--disabled {
+  background-color: #e0e0e0; 
+  color: #8a8a8a;
+}
+
+.calendar-container {
+  background-color: #f0f0f0; /* cor de fundo cinza */
+  padding: 1rem;
+  border-radius: 8px;
+}

@@ -106,9 +106,16 @@ const RegisterPage = () => {
     const isLocadorOrPrestador = formData.tipousu.includes("Locador") || formData.tipousu.includes("Prestador");
 
     return (
-        <div className="flex flex-col items-center p-4 min-h-screen">
-            <ApplicationLogo className="mb-4" />
-            <form onSubmit={handleSubmit} className="bg-gray-700 p-8 rounded-lg shadow-lg max-w-3xl w-full mx-auto">
+        <div
+        className="flex flex-col items-center p-4 min-h-screen"
+        style={{
+            backgroundImage: "url('/images/evento.jpg')", // Ajuste o caminho da imagem
+            backgroundSize: "cover", // Faz a imagem cobrir toda a área
+            backgroundPosition: "center", // Centraliza a imagem
+        }}
+    >
+        <ApplicationLogo className="mb-4" />
+        <form onSubmit={handleSubmit} className="bg-gray-700 p-8 rounded-lg shadow-lg max-w-3xl w-full mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Campos de entrada com mensagens de erro */}
                     <div>

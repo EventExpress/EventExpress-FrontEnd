@@ -10,7 +10,7 @@ export default function VisualizarReservas() {
     useEffect(() => {
         const fetchReservas = async () => {
             try {
-                const response = await fetch('/agendado/show');
+                const response = await fetch('http://localhost:8000/agendados/meus');
                 const data = await response.json();
                 setReservas(data.agendado); // Ajuste o nome conforme a resposta da sua API
             } catch (error) {

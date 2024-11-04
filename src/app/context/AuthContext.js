@@ -8,7 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [anuncios, setAnuncios] = useState([]);
-  const [servicos, setServicos] = useState([]); // Novo estado para serviços
+  const [servicos, setServicos] = useState([]); 
   const router = useRouter();
 
   const fetchUserAnunciosAndServicos = async () => {
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
       });
       localStorage.setItem('token', response.data.token);
       setUser(response.data.user);
-      await fetchUserAnunciosAndServicos(); // Atualiza o usuário, anúncios e serviços após login
+      await fetchUserAnunciosAndServicos(); 
       router.push('/');
     } catch (error) {
       console.error('Erro ao fazer login:', error);
