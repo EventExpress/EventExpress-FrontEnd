@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import ApplicationLogo from './ApplicationLogo';
 import { useAuth } from 'src/app/context/AuthContext';
-import api from '@/services/api';
 
 const NavBar = () => {
     const { user, loading, logout } = useAuth();
+    const router = useRouter();
     const [searchQuery, setSearchQuery] = useState('');
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [userType, setUserType] = useState('Locatário');
     const [userTypeDropdown, setUserTypeDropdown] = useState(false);
 
-    // Carregar o tipo de usuário do localStorage ao montar o componente
+    // Atualiza o tipo de usuário e opções da NavBar ao logar/deslogar
     useEffect(() => {
         const storedUserType = localStorage.getItem('userType');
         if (storedUserType) {
@@ -19,8 +20,9 @@ const NavBar = () => {
         } else if (user) {
             setUserType(user.tipousu || 'Locatário');
         }
-    }, [user]);
+    }, [user]);  // Monitorando a mudança no estado 'user'
 
+    // Fecha dropdowns ao clicar fora
     useEffect(() => {
         const handleClickOutside = (event) => {
             if ((dropdownOpen || userTypeDropdown) && !event.target.closest('.dropdown')) {
@@ -37,35 +39,23 @@ const NavBar = () => {
 
     const handleLogout = async () => {
         await logout();
+        // Recarregar a página para garantir que a Navbar atualize
+        window.location.reload();  // Ou use router.push('/') se preferir não recarregar completamente
     };
 
-    const handleSearchSubmit = async (e) => {
+    const handleSearchSubmit = (e) => {
         e.preventDefault();
-        try {
-            const response = await api.get('http://localhost:8000/api/anuncios', {
-                params: { query: searchQuery },
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
-                },
-            });
-            console.log('Resultados da busca:', response.data);
-        } catch (error) {
-            console.error('Erro ao buscar anúncios:', error.message);
+        if (searchQuery.trim()) {
+            router.push(`/anuncios/search?query=${encodeURIComponent(searchQuery)}`);
         }
     };
 
-    const toggleDropdown = () => {
-        setDropdownOpen(!dropdownOpen);
-    };
-
-    const toggleUserTypeDropdown = () => {
-        setUserTypeDropdown(!userTypeDropdown);
-    };
+    const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
+    const toggleUserTypeDropdown = () => setUserTypeDropdown(!userTypeDropdown);
 
     const handleUserTypeChange = (type) => {
         setUserType(type);
         setUserTypeDropdown(false);
-        // Salvar o tipo de usuário no localStorage
         localStorage.setItem('userType', type);
     };
 
@@ -93,7 +83,10 @@ const NavBar = () => {
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full px-4 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                         />
-                        <button type="submit" className="ml-3 bg-orange-500 hover:bg-orange-600 focus:bg-orange-600 text-white px-4 py-2 rounded-md">
+                        <button
+                            type="submit"
+                            className="ml-3 bg-orange-500 hover:bg-orange-600 focus:bg-orange-600 text-white px-4 py-2 rounded-md"
+                        >
                             Buscar
                         </button>
                     </form>
@@ -103,7 +96,10 @@ const NavBar = () => {
                             <span className="text-gray-900">Carregando...</span>
                         ) : user ? (
                             <div className="relative dropdown">
-                                <button onClick={toggleDropdown} className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-orange-400 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
+                                <button
+                                    onClick={toggleDropdown}
+                                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-orange-400 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
+                                >
                                     <span>{user.user.nome}</span>
                                 </button>
 
@@ -117,7 +113,7 @@ const NavBar = () => {
                                                 Relatórios
                                             </Link>
                                             {userType === 'Locatário' && (
-                                                <Link href="agendados/visualizar" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                <Link href="/agendados/visualizar" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                     Minhas Reservas
                                                 </Link>
                                             )}
@@ -141,7 +137,10 @@ const NavBar = () => {
                                                     </Link>
                                                 </>
                                             )}
-                                            <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            <button
+                                                onClick={handleLogout}
+                                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            >
                                                 Sair
                                             </button>
                                         </div>
@@ -149,7 +148,10 @@ const NavBar = () => {
                                 )}
 
                                 <div className="relative inline-block ml-3">
-                                    <button onClick={toggleUserTypeDropdown} className="px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 rounded-md focus:outline-none">
+                                    <button
+                                        onClick={toggleUserTypeDropdown}
+                                        className="px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 rounded-md focus:outline-none"
+                                    >
                                         {userType}
                                     </button>
 
@@ -159,9 +161,7 @@ const NavBar = () => {
                                                 <button
                                                     key={type}
                                                     onClick={() => handleUserTypeChange(type)}
-                                                    className={`block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 ${
-                                                        userType === type ? 'font-semibold text-orange-500 bg-white' : 'bg-white'
-                                                    }`}
+                                                    className={`block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 ${userType === type ? 'font-semibold text-orange-500 bg-white' : 'bg-white'}`}
                                                 >
                                                     {type}
                                                 </button>

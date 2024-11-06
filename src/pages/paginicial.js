@@ -79,6 +79,11 @@ const Paginicial = () => {
     router.push(`/agendados/create?anuncioId=${anuncioId}`);
   };
 
+  const reloadPage = () => {
+    // Força a recarga da página para garantir que a NavBar seja atualizada com as informações do usuário
+    router.replace(router.asPath);
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <NavBar />
@@ -101,10 +106,7 @@ const Paginicial = () => {
                       <h2 className="text-xl font-bold">{anuncio.titulo || 'Título não disponível'}</h2>
                       <p className="text-gray-700">{anuncio.descricao || 'Descrição não disponível'}</p>
                       <p className="text-lg font-semibold text-orange-500">
-                        {anuncio.valor ? `${anuncio.valor} R$` : 'Valor não disponível'}
-                      </p>
-                      <p className="text-gray-700">
-                        Categoria: {anuncio.categoria ? anuncio.categoria.nome : 'Categoria não disponível'}
+                        {anuncio.valor ? `R$${anuncio.valor} ` : 'Valor não disponível'}
                       </p>
                       {anuncio.imagens && anuncio.imagens.length > 0 ? (
                         <img

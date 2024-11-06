@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useRouter } from 'next/router';
 import Calendar from 'react-calendar';
 import { format, isAfter, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -7,7 +8,7 @@ import 'react-calendar/dist/Calendar.css';
 import NavBar from '../../components/NavBar';
 import '../../app/globals.css';
 
-export default function CreateReserva({ anuncioId }) { // Passando anuncioId como prop
+export default function CreateReserva() {
     const [dataInicio, setDataInicio] = useState(null);
     const [dataFim, setDataFim] = useState(null);
     const [horaInicio, setHoraInicio] = useState('00:00');
@@ -18,15 +19,28 @@ export default function CreateReserva({ anuncioId }) { // Passando anuncioId com
     const [datasIndisponiveis, setDatasIndisponiveis] = useState([]);
     const [errorMessage, setErrorMessage] = useState('');
     const [servicosData, setServicosData] = useState({});
+    const [token, setToken] = useState(null);
+    const [formapagamento, setFormaPagamento] = useState('pix'); 
+    const router = useRouter();
+    const { anuncioId } = router.query;
 
     useEffect(() => {
-        const userId = localStorage.getItem('userId');
-        if (userId) setUsuarioId(userId);
-    }, []);
+        if (typeof window !== 'undefined') {
+            const storedToken = localStorage.getItem('token');
+            const storedUserId = localStorage.getItem('userId');
+            if (storedToken) {
+                setToken(storedToken);
+                setUsuarioId(storedUserId);
+            } else {
+                router.push('/login');
+            }
+        }
+    }, [router]);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (!token) return;
+        if (!token || !anuncioId) {
+            return;
+        }
 
         const fetchServicos = async () => {
             try {
@@ -41,7 +55,6 @@ export default function CreateReserva({ anuncioId }) { // Passando anuncioId com
         };
 
         const fetchDatasIndisponiveis = async () => {
-            if (!anuncioId) return;
             try {
                 const response = await axios.get(`http://localhost:8000/api/verifica-agenda/${anuncioId}`, {
                     headers: { Authorization: `Bearer ${token}` },
@@ -55,105 +68,111 @@ export default function CreateReserva({ anuncioId }) { // Passando anuncioId com
 
         fetchServicos();
         fetchDatasIndisponiveis();
-    }, [anuncioId]);
+    }, [anuncioId, token]);
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        setError(null);
-        if (!dataInicio || !dataFim || !servicosIds.length) {
-            setError('Por favor, selecione as datas e os serviços.');
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!anuncioId) {
+            setErrorMessage('Anúncio não encontrado. Tente novamente.');
             return;
         }
-    
-        // Verifica se todos os serviços selecionados têm datas válidas
-        const hasIncompleteServiceDates = servicosIds.some(id => {
-            const servico = servicosData[id];
-            return !(servico && servico.dataInicio && servico.dataFim);
-        });
-    
-        if (hasIncompleteServiceDates) {
-            setErrorMessage('Por favor, preencha as datas de todos os serviços selecionados.');
+
+        if (!dataInicio || !dataFim || !horaInicio || !horaFim) {
+            setErrorMessage('Por favor, preencha todos os campos de data e hora.');
             return;
         }
-    
+
+        if (!formapagamento) {
+            setErrorMessage('Por favor, selecione uma forma de pagamento.');
+            return;
+        }
+
         const reservaData = {
-            data_inicio: format(dataInicio, 'yyyy-MM-dd'),
-            data_fim: format(dataFim, 'yyyy-MM-dd'),
-            hora_inicio: horaInicio,
-            hora_fim: horaFim,
-            servicosId: servicosIds.map(id => ({
-                id,
-                data_inicio: format(servicosData[id].dataInicio, 'yyyy-MM-dd'),
-                data_fim: format(servicosData[id].dataFim, 'yyyy-MM-dd'),
-            })),
             anuncio_id: anuncioId,
             usuario_id: usuarioId,
+            data_inicio: format(dataInicio, 'yyyy-MM-dd') + ' ' + horaInicio,
+            data_fim: format(dataFim, 'yyyy-MM-dd') + ' ' + horaFim,
+            servicos_ids: servicosIds,
+            forma_pagamento: formapagamento,
+            servicos_data: Object.keys(servicosData).map((key) => ({
+                id: key,
+                data_inicio: format(servicosData[key].dataInicio, 'yyyy-MM-dd') + ' ' + servicosData[key].horaInicio,
+                data_fim: format(servicosData[key].dataFim, 'yyyy-MM-dd') + ' ' + servicosData[key].horaFim,
+            })),
         };
-    
-        console.log('Dados da reserva:', reservaData); // Depuração
-    
+
         try {
-            const token = localStorage.getItem('token');
-            const response = await axios.post('http://localhost:8000/api/agendados/create', reservaData, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`, // Corrigido aqui
-                },
+            const response = await axios.post(`http://localhost:8000/api/agendados/${anuncioId}`, reservaData, {
+                headers: { Authorization: `Bearer ${token}` },
             });
-        
-            if (response.status === 200) {
-                console.log('Reserva criada com sucesso!');
-                setErrorMessage('');
-                // Redirecionar ou mostrar mensagem de sucesso
-            } else {
-                setErrorMessage('Erro ao criar reserva. Tente novamente.');
-            }
+            console.log("Reserva criada com sucesso:", response.data);
+            router.push('/paginicial');
         } catch (error) {
-            console.error('Erro ao criar reserva:', error);
-            setErrorMessage('Erro ao criar reserva. Tente novamente.');
+            if (error.response) {
+                console.error("Erro ao criar reserva:", error.response.data);
+                setErrorMessage(error.response.data.message || 'Erro ao criar reserva. Tente novamente mais tarde.');
+            } else {
+                console.error("Erro de rede:", error);
+                setErrorMessage('Erro ao criar reserva. Tente novamente mais tarde.');
+            }
         }
     };
-    
-    
 
     const handleServicosChange = (id) => {
-        setServicosIds(prev => {
+        setServicosIds((prev) => {
             const isChecked = prev.includes(id);
             if (isChecked) {
                 const { [id]: _, ...rest } = servicosData;
                 setServicosData(rest);
             } else {
-                setServicosData(prev => ({ ...prev, [id]: { dataInicio: null, dataFim: null } }));
+                setServicosData((prev) => ({ ...prev, [id]: { dataInicio: null, dataFim: null, horaInicio: '00:00', horaFim: '00:30' } }));
             }
-            return isChecked ? prev.filter(servicoId => servicoId !== id) : [...prev, id];
+            return isChecked ? prev.filter((servicoId) => servicoId !== id) : [...prev, id];
         });
     };
 
     const handleDataInicioChange = (id, date) => {
-        setServicosData(prev => ({
+        setServicosData((prev) => ({
             ...prev,
             [id]: { ...prev[id], dataInicio: date },
         }));
     };
 
     const handleDataFimChange = (id, date) => {
-        setServicosData(prev => ({
+        setServicosData((prev) => ({
             ...prev,
             [id]: { ...prev[id], dataFim: date },
+        }));
+    };
+
+    const handleHoraInicioChange = (e, id) => {
+        const selectedHoraInicio = e.target.value;
+        setServicosData((prev) => ({
+            ...prev,
+            [id]: { ...prev[id], horaInicio: selectedHoraInicio },
+        }));
+    };
+
+    const handleHoraFimChange = (e, id) => {
+        const selectedHoraFim = e.target.value;
+        setServicosData((prev) => ({
+            ...prev,
+            [id]: { ...prev[id], horaFim: selectedHoraFim },
         }));
     };
 
     const handleDataInicioGeneralChange = (date) => {
         setDataInicio(date);
         if (dataFim && format(date, 'yyyy-MM-dd') > format(dataFim, 'yyyy-MM-dd')) {
-            setDataFim(date);  
+            setDataFim(date);
         }
     };
 
     const handleDataFimGeneralChange = (date) => {
         setDataFim(date);
         if (format(dataInicio, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd') && horaInicio > horaFim) {
-            setHoraFim(horaInicio);  
+            setHoraFim(horaInicio);
         }
     };
 
@@ -178,14 +197,6 @@ export default function CreateReserva({ anuncioId }) { // Passando anuncioId com
             }
         }
         return times;
-    };
-
-    const handleHoraInicioChange = (e) => {
-        const selectedHoraInicio = e.target.value;
-        setHoraInicio(selectedHoraInicio);
-        if (dataInicio && dataFim && format(dataInicio, 'yyyy-MM-dd') === format(dataFim, 'yyyy-MM-dd') && selectedHoraInicio > horaFim) {
-            setHoraFim(selectedHoraInicio);
-        }
     };
 
     const timeOptionsInicio = generateTimeOptions('00:00');
@@ -214,14 +225,16 @@ export default function CreateReserva({ anuncioId }) { // Passando anuncioId com
                                             locale={ptBR}
                                             className="custom-calendar"
                                         />
-                                        <label className="block text-sm font-medium text-orange-500 mt-4">Hora de Início do Anúncio:</label>
+                                        <label className="block text-sm font-medium text-orange-500 mb-2">Hora de Início:</label>
                                         <select
                                             value={horaInicio}
                                             onChange={handleHoraInicioChange}
-                                            className="border rounded-md p-2 w-full"
+                                            className="w-full p-2 border rounded-lg"
                                         >
-                                            {timeOptionsInicio.map((time) => (
-                                                <option key={time} value={time}>{time}</option>
+                                            {timeOptionsInicio.map((option) => (
+                                                <option key={option} value={option}>
+                                                    {option}
+                                                </option>
                                             ))}
                                         </select>
                                     </div>
@@ -235,14 +248,16 @@ export default function CreateReserva({ anuncioId }) { // Passando anuncioId com
                                             locale={ptBR}
                                             className="custom-calendar"
                                         />
-                                        <label className="block text-sm font-medium text-orange-500 mt-4">Hora de Fim do Anúncio:</label>
+                                        <label className="block text-sm font-medium text-orange-500 mb-2">Hora de Fim:</label>
                                         <select
                                             value={horaFim}
                                             onChange={(e) => setHoraFim(e.target.value)}
-                                            className="border rounded-md p-2 w-full"
+                                            className="w-full p-2 border rounded-lg"
                                         >
-                                            {timeOptionsFim.map((time) => (
-                                                <option key={time} value={time}>{time}</option>
+                                            {timeOptionsFim.map((option) => (
+                                                <option key={option} value={option}>
+                                                    {option}
+                                                </option>
                                             ))}
                                         </select>
                                     </div>
@@ -306,11 +321,24 @@ export default function CreateReserva({ anuncioId }) { // Passando anuncioId com
                                         <p className="text-gray-500">Nenhum serviço disponível.</p>
                                     )}
                                 </div>
-                                <input type="hidden" name="anuncio_id" value={anuncioId} />
-                                <input type="hidden" name="usuario_id" value={usuarioId} />
 
-                                <button type="submit" className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded">
-                                    Reservar
+                                <div className="mb-4">
+                                    <h3 className="font-semibold text-lg">Forma de Pagamento</h3>
+                                    <select
+                                        value={formapagamento}
+                                        onChange={(e) => setFormaPagamento(e.target.value)}
+                                        className="border border-gray-300 rounded-md p-2 w-full"
+                                    >
+                                        <option value="pix">Pix</option>
+                                        <option value="cartao">Cartão de Crédito</option>
+                                    </select>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                                >
+                                    Confirmar Reserva
                                 </button>
                             </form>
                         </div>
