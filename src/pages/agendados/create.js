@@ -94,13 +94,15 @@ export default function CreateReserva() {
             data_inicio: format(dataInicio, 'yyyy-MM-dd') + ' ' + horaInicio,
             data_fim: format(dataFim, 'yyyy-MM-dd') + ' ' + horaFim,
             servicos_ids: servicosIds,
-            forma_pagamento: formapagamento,
+            formapagamento: formapagamento,
             servicos_data: Object.keys(servicosData).map((key) => ({
                 id: key,
                 data_inicio: format(servicosData[key].dataInicio, 'yyyy-MM-dd') + ' ' + servicosData[key].horaInicio,
                 data_fim: format(servicosData[key].dataFim, 'yyyy-MM-dd') + ' ' + servicosData[key].horaFim,
             })),
         };
+
+        console.log("Dados da reserva:", reservaData);
 
         try {
             const response = await axios.post(`http://localhost:8000/api/agendados/${anuncioId}`, reservaData, {
