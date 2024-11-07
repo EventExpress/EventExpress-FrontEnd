@@ -7,6 +7,7 @@ import { ptBR } from 'date-fns/locale';
 import 'react-calendar/dist/Calendar.css';
 import NavBar from '../../components/NavBar';
 import '../../app/globals.css';
+import Footer from '../../components/Footer';
 
 export default function CreateReserva() {
     const [dataInicio, setDataInicio] = useState(null);
@@ -351,6 +352,7 @@ export default function CreateReserva() {
                     </div>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 }

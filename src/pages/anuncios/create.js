@@ -295,6 +295,31 @@ const CreateAnuncio = () => {
                                         className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
                                     />
                                 </div>
+                                <div className="mt-4">
+                                    <label htmlFor="capacidade" className="text-orange-500">Capacidade:</label>
+                                    <input
+                                        type="number"
+                                        name="capacidade"
+                                        id="capacidade"
+                                        value={formData.capacidade}
+                                        onChange={handleChange}
+                                        required
+                                        className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
+                                    />
+                                </div>
+                                                        
+                                <div className="mt-4">
+                                    <label htmlFor="valor" className="text-orange-500">Valor:</label>
+                                    <input
+                                        type="number"
+                                        name="valor"
+                                        id="valor"
+                                        value={formData.valor}
+                                        onChange={handleChange}
+                                        required
+                                        className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
+                                    />
+                                </div>
     
                                 {/* Datas Indisponíveis */}
                                 <div className="mt-4">
