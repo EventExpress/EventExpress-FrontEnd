@@ -98,8 +98,8 @@ export default function CreateReserva() {
             formapagamento: formapagamento,
             servicos_data: Object.keys(servicosData).map((key) => ({
                 id: key,
-                data_inicio: format(servicosData[key].dataInicio, 'yyyy-MM-dd') + ' ' + servicosData[key].horaInicio,
-                data_fim: format(servicosData[key].dataFim, 'yyyy-MM-dd') + ' ' + servicosData[key].horaFim,
+                data_inicio: servicosData[key].dataInicio ? format(servicosData[key].dataInicio, 'yyyy-MM-dd') + ' ' + servicosData[key].horaInicio : null,
+                data_fim: servicosData[key].dataFim ? format(servicosData[key].dataFim, 'yyyy-MM-dd') + ' ' + servicosData[key].horaFim : null,
             })),
         };
 
@@ -149,20 +149,19 @@ export default function CreateReserva() {
         }));
     };
 
-    const handleHoraInicioChange = (e, id) => {
+    const handleHoraInicioChange = (e) => {
         const selectedHoraInicio = e.target.value;
-        setServicosData((prev) => ({
-            ...prev,
-            [id]: { ...prev[id], horaInicio: selectedHoraInicio },
-        }));
+        setHoraInicio(selectedHoraInicio);
+
+        // Verifica se o horário de fim está antes do início e ajusta se necessário
+        if (dataInicio && dataFim && format(dataInicio, 'yyyy-MM-dd') === format(dataFim, 'yyyy-MM-dd') && selectedHoraInicio > horaFim) {
+            setHoraFim(selectedHoraInicio);
+        }
     };
 
-    const handleHoraFimChange = (e, id) => {
+    const handleHoraFimChange = (e) => {
         const selectedHoraFim = e.target.value;
-        setServicosData((prev) => ({
-            ...prev,
-            [id]: { ...prev[id], horaFim: selectedHoraFim },
-        }));
+        setHoraFim(selectedHoraFim);
     };
 
     const handleDataInicioGeneralChange = (date) => {
