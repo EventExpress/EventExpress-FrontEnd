@@ -30,15 +30,16 @@ const RegisterPage = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-
-        // Atualizações de formatação e validação para CPF, CNPJ, telefone e CEP
+    
         if (name === "cpf") {
             const unformattedCpf = value.replace(/\D/g, "").slice(0, 11);
-            setFormData({ ...formData, [name]: unformattedCpf });
-            setErrors({ ...errors, cpf: unformattedCpf.length < 11 ? "CPF inválido" : "" });
+            const formattedCpf = unformattedCpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4"); 
+            setFormData({ ...formData, [name]: formattedCpf });
+            setErrors({ ...errors, cpf: unformattedCpf.length < 11 ? "CPF inválido" : "" }); 
         } else if (name === "cnpj") {
             const unformattedCnpj = value.replace(/\D/g, "").slice(0, 14);
-            setFormData({ ...formData, [name]: unformattedCnpj });
+            const formattedCnpj = unformattedCnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+            setFormData({ ...formData, [name]: formattedCnpj });
             setErrors({ ...errors, cnpj: unformattedCnpj.length < 14 ? "CNPJ inválido" : "" });
         } else if (name === "telefone") {
             const formattedTel = value.replace(/\D/g, "").slice(0, 11)
@@ -47,11 +48,17 @@ const RegisterPage = () => {
             setFormData({ ...formData, [name]: formattedTel });
             setErrors({ ...errors, telefone: formattedTel.length < 15 ? "Telefone inválido" : "" });
         } else if (name === "cep") {
-            const formattedCep = value.replace(/\D/g, "").slice(0, 8)
-                .replace(/(\d{5})(\d)/, "$1-$2");
-            setFormData({ ...formData, [name]: formattedCep });
-            setErrors({ ...errors, cep: formattedCep.length < 9 ? "CEP inválido" : "" });
-            if (formattedCep.length === 9) {
+            const unformattedCep = value.replace(/\D/g, "").slice(0, 8);
+            const formattedCep = unformattedCep.replace(/(\d{5})(\d{1,3})/, "$1-$2");
+    
+            setFormData(prevState => ({
+                ...prevState,
+                [name]: formattedCep,
+            }));
+
+            setErrors({ ...errors, cep: unformattedCep.length < 8 ? "CEP inválido" : "" });
+    
+            if (unformattedCep.length === 8) {
                 buscarCep(formattedCep);
             }
         } else if (name === "datanasc") {
@@ -68,7 +75,7 @@ const RegisterPage = () => {
             setFormData({ ...formData, [name]: value });
         }
     };
-
+    
     const buscarCep = async (cep) => {
         try {
             const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
@@ -109,15 +116,15 @@ const RegisterPage = () => {
         <div
         className="flex flex-col items-center p-4 min-h-screen"
         style={{
-            backgroundImage: "url('/images/evento.jpg')", // Ajuste o caminho da imagem
-            backgroundSize: "cover", // Faz a imagem cobrir toda a área
-            backgroundPosition: "center", // Centraliza a imagem
+            backgroundImage: "url('/images/evento.jpg')",
+            backgroundSize: "cover", 
+            backgroundPosition: "center", 
         }}
     >
         <ApplicationLogo className="mb-4" />
         <form onSubmit={handleSubmit} className="bg-gray-700 p-8 rounded-lg shadow-lg max-w-3xl w-full mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Campos de entrada com mensagens de erro */}
+                    {}
                     <div>
                         <label htmlFor="nome" className="block text-orange-500">Nome</label>
                         <input
@@ -197,7 +204,7 @@ const RegisterPage = () => {
                                         value={tipo}
                                         checked={formData.tipousu.includes(tipo)}
                                         onChange={handleChange}
-                                        className="sr-only" // Esconde o checkbox padrão
+                                        className="sr-only"
                                     />
                                     {tipo}
                                 </label>
@@ -205,7 +212,7 @@ const RegisterPage = () => {
                         </div>
                     </div>
 
-                    {/* Campo CPF, visível para todos os tipos de usuários */}
+                    {}
                     <div>
                         <label htmlFor="cpf" className="block text-orange-500">CPF</label>
                         <input
@@ -220,7 +227,7 @@ const RegisterPage = () => {
                         {errors.cpf && <p className="text-red-500">{errors.cpf}</p>}
                     </div>
 
-                    {/* Campo CNPJ, visível apenas para Locador e Prestador */}
+                    {}
                     {isLocadorOrPrestador && (
                         <div>
                             <label htmlFor="cnpj" className="block text-orange-500">CNPJ</label>

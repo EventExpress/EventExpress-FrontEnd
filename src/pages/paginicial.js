@@ -67,6 +67,7 @@ const Paginicial = () => {
         setLoading(false);
       }
     };
+    
 
     fetchAnuncios();
   }, [router]);

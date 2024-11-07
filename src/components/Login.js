@@ -28,8 +28,7 @@ const LoginPage = () => {
                 localStorage.setItem('token', response.data.token);
                 console.log('Token armazenado:', response.data.token);
 
-                // Redireciona para a página inicial e não mantém o login no histórico de navegação
-                router.replace('/paginicial'); // Substitua a página de login
+                window.location.replace('/paginicial'); 
             }
 
         } catch (error) {

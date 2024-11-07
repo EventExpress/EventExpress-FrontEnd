@@ -20,7 +20,7 @@ export default function CreateReserva() {
     const [errorMessage, setErrorMessage] = useState('');
     const [servicosData, setServicosData] = useState({});
     const [token, setToken] = useState(null);
-    const [formapagamento, setFormaPagamento] = useState('pix'); 
+    const [formapagamento, setFormaPagamento] = useState('select'); 
     const router = useRouter();
     const { anuncioId } = router.query;
 
@@ -331,8 +331,12 @@ export default function CreateReserva() {
                                         onChange={(e) => setFormaPagamento(e.target.value)}
                                         className="border border-gray-300 rounded-md p-2 w-full"
                                     >
+                                        <option value="">Selecione uma forma de pagamento</option>
                                         <option value="pix">Pix</option>
+                                        <option value="boleto">Boleto</option>
+                                        <option value="cartao">Cartão de Débito</option>
                                         <option value="cartao">Cartão de Crédito</option>
+                                        <option value="transferencia">Transaferência</option>
                                     </select>
                                 </div>
 

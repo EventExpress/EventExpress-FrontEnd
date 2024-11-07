@@ -39,8 +39,7 @@ const NavBar = () => {
 
     const handleLogout = async () => {
         await logout();
-        // Recarregar a página para garantir que a Navbar atualize
-        window.location.reload();  // Ou use router.push('/') se preferir não recarregar completamente
+        window.location.reload();  
     };
 
     const handleSearchSubmit = (e) => {

@@ -104,7 +104,7 @@ const ProfileForm = () => {
 
             if (response.status === 200) {
                 alert('Perfil atualizado com sucesso');
-                router.push('/paginicial');
+                window.location.replace('/paginicial');
             } else {
                 console.error('Erro ao atualizar o perfil:', response.data);
                 throw new Error('Erro ao atualizar o perfil');

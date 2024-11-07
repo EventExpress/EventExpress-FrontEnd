@@ -112,7 +112,7 @@ const Relatorios = () => {
                         >
                             Locatário
                         </button>
-                        {user?.tipo === 'admin' && ( // Verifica se o usuário é admin
+                        {user?.tipousu === 'admin' && ( 
                             <button
                                 onClick={() => setAbaAtiva('admin')}
                                 className={`block w-full px-4 py-2 rounded-lg ${abaAtiva === 'admin' ? 'bg-orange-500 text-white' : 'bg-gray-200'}`}
