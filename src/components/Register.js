@@ -7,6 +7,8 @@ import Button from "@/components/Button";
 import ApplicationLogo from "@/components/ApplicationLogo";
 import Link from "next/link";
 import "@/app/globals.css";
+import NavBar from '@/components/NavBar';
+import Footer from '@/components/Footer';
 
 const RegisterPage = () => {
     const router = useRouter();
@@ -113,212 +115,207 @@ const RegisterPage = () => {
     const isLocadorOrPrestador = formData.tipousu.includes("Locador") || formData.tipousu.includes("Prestador");
 
     return (
-        <div
-        className="flex flex-col items-center p-4 min-h-screen"
-        style={{
-            backgroundImage: "url('/images/evento.jpg')",
-            backgroundSize: "cover", 
-            backgroundPosition: "center", 
-        }}
-    >
-        <ApplicationLogo className="mb-4" />
-        <form onSubmit={handleSubmit} className="bg-gray-700 p-8 rounded-lg shadow-lg max-w-3xl w-full mx-auto">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {}
-                    <div>
-                        <label htmlFor="nome" className="block text-orange-500">Nome</label>
-                        <input
-                            id="nome"
-                            className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
-                            type="text"
-                            name="nome"
-                            value={formData.nome}
-                            onChange={handleChange}
-                            required
-                            autoFocus
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="sobrenome" className="block text-orange-500">Sobrenome</label>
-                        <input
-                            id="sobrenome"
-                            className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
-                            type="text"
-                            name="sobrenome"
-                            value={formData.sobrenome}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="telefone" className="block text-orange-500">Telefone</label>
-                        <input
-                            id="telefone"
-                            className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
-                            type="text"
-                            name="telefone"
-                            value={formData.telefone}
-                            onChange={handleChange}
-                            required
-                        />
-                        {errors.telefone && <p className="text-red-500">{errors.telefone}</p>}
-                    </div>
-                    <div>
-                        <label htmlFor="datanasc" className="block text-orange-500">Data de Nascimento</label>
-                        <input
-                            id="datanasc"
-                            className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
-                            type="date"
-                            name="datanasc"
-                            value={formData.datanasc}
-                            onChange={handleChange}
-                            required
-                        />
-                        {errors.datanasc && <p className="text-red-500">{errors.datanasc}</p>}
-                    </div>
-                    <div>
-                        <label htmlFor="email" className="block text-orange-500">Email</label>
-                        <input
-                            id="email"
-                            className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-                    <div className="col-span-2">
-                        <label className="block text-orange-500 mb-2">Tipo de Usuário</label>
-                        <div className="flex flex-col md:flex-row md:space-x-4">
-                            {["Locatario", "Locador", "Prestador"].map((tipo) => (
-                                <label
-                                    key={tipo}
-                                    className={`flex-1 cursor-pointer border rounded-lg p-4 text-center transition duration-300 ease-in-out transform hover:scale-105 ${
-                                        formData.tipousu.includes(tipo) ? 'bg-orange-500 text-white border-orange-600' : 'bg-gray-700 text-white border-gray-200'
-                                    }`}
-                                >
-                                    <input
-                                        type="checkbox"
-                                        name="tipousu"
-                                        value={tipo}
-                                        checked={formData.tipousu.includes(tipo)}
-                                        onChange={handleChange}
-                                        className="sr-only"
-                                    />
-                                    {tipo}
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-
-                    {}
-                    <div>
-                        <label htmlFor="cpf" className="block text-orange-500">CPF</label>
-                        <input
-                            id="cpf"
-                            className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
-                            type="text"
-                            name="cpf"
-                            value={formData.cpf}
-                            onChange={handleChange}
-                            required
-                        />
-                        {errors.cpf && <p className="text-red-500">{errors.cpf}</p>}
-                    </div>
-
-                    {}
-                    {isLocadorOrPrestador && (
+        <div>
+            <NavBar /> {/* Incluindo a NavBar */}
+            <div
+                className="flex flex-col items-center p-4 min-h-screen"
+                style={{
+                    backgroundImage: "url('/images/evento.jpg')",
+                    backgroundSize: "cover", 
+                    backgroundPosition: "center", 
+                }}
+            >
+                <ApplicationLogo className="mb-4" />
+                <form onSubmit={handleSubmit} className="bg-gray-700 p-8 rounded-lg shadow-lg max-w-3xl w-full mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label htmlFor="cnpj" className="block text-orange-500">CNPJ</label>
+                            <label htmlFor="nome" className="block text-orange-500">Nome</label>
                             <input
-                                id="cnpj"
+                                id="nome"
                                 className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
                                 type="text"
-                                name="cnpj"
-                                value={formData.cnpj}
+                                name="nome"
+                                value={formData.nome}
                                 onChange={handleChange}
+                                required
+                                autoFocus
                             />
-                            {errors.cnpj && <p className="text-red-500">{errors.cnpj}</p>}
                         </div>
-                    )}
-
-                    <div>
-                        <label htmlFor="cidade" className="block text-orange-500">Cidade</label>
-                        <input
-                            id="cidade"
-                            className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
-                            type="text"
-                            name="cidade"
-                            value={formData.cidade}
-                            onChange={handleChange}
-                            required
-                        />
+                        <div>
+                            <label htmlFor="sobrenome" className="block text-orange-500">Sobrenome</label>
+                            <input
+                                id="sobrenome"
+                                className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                type="text"
+                                name="sobrenome"
+                                value={formData.sobrenome}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="telefone" className="block text-orange-500">Telefone</label>
+                            <input
+                                id="telefone"
+                                className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                type="text"
+                                name="telefone"
+                                value={formData.telefone}
+                                onChange={handleChange}
+                                required
+                            />
+                            {errors.telefone && <p className="text-red-500">{errors.telefone}</p>}
+                        </div>
+                        <div>
+                            <label htmlFor="datanasc" className="block text-orange-500">Data de Nascimento</label>
+                            <input
+                                id="datanasc"
+                                className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                type="date"
+                                name="datanasc"
+                                value={formData.datanasc}
+                                onChange={handleChange}
+                                required
+                            />
+                            {errors.datanasc && <p className="text-red-500">{errors.datanasc}</p>}
+                        </div>
+                        <div>
+                            <label htmlFor="email" className="block text-orange-500">Email</label>
+                            <input
+                                id="email"
+                                className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+                        <div className="col-span-2">
+                            <label className="block text-orange-500 mb-2">Tipo de Usuário</label>
+                            <div className="flex flex-col md:flex-row md:space-x-4">
+                                {["Locatario", "Locador", "Prestador"].map((tipo) => (
+                                    <label
+                                        key={tipo}
+                                        className={`flex-1 cursor-pointer border rounded-lg p-4 text-center transition duration-300 ease-in-out transform hover:scale-105 ${
+                                            formData.tipousu.includes(tipo) ? 'bg-orange-500 text-white border-orange-600' : 'bg-gray-700 text-white border-gray-200'
+                                        }`}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            name="tipousu"
+                                            value={tipo}
+                                            checked={formData.tipousu.includes(tipo)}
+                                            onChange={handleChange}
+                                            className="sr-only"
+                                        />
+                                        {tipo}
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <label htmlFor="cpf" className="block text-orange-500">CPF</label>
+                            <input
+                                id="cpf"
+                                className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                type="text"
+                                name="cpf"
+                                value={formData.cpf}
+                                onChange={handleChange}
+                                required
+                            />
+                            {errors.cpf && <p className="text-red-500">{errors.cpf}</p>}
+                        </div>
+                        {isLocadorOrPrestador && (
+                            <div>
+                                <label htmlFor="cnpj" className="block text-orange-500">CNPJ</label>
+                                <input
+                                    id="cnpj"
+                                    className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                    type="text"
+                                    name="cnpj"
+                                    value={formData.cnpj}
+                                    onChange={handleChange}
+                                />
+                                {errors.cnpj && <p className="text-red-500">{errors.cnpj}</p>}
+                            </div>
+                        )}
+                        <div>
+                            <label htmlFor="cidade" className="block text-orange-500">Cidade</label>
+                            <input
+                                id="cidade"
+                                className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                type="text"
+                                name="cidade"
+                                value={formData.cidade}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="cep" className="block text-orange-500">CEP</label>
+                            <input
+                                id="cep"
+                                className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                type="text"
+                                name="cep"
+                                value={formData.cep}
+                                onChange={handleChange}
+                                required
+                            />
+                            {errors.cep && <p className="text-red-500">{errors.cep}</p>}
+                        </div>
+                        <div>
+                            <label htmlFor="numero" className="block text-orange-500">Número</label>
+                            <input
+                                id="numero"
+                                className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                type="text"
+                                name="numero"
+                                value={formData.numero}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="bairro" className="block text-orange-500">Bairro</label>
+                            <input
+                                id="bairro"
+                                className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                type="text"
+                                name="bairro"
+                                value={formData.bairro}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="password" className="block text-orange-500">Senha</label>
+                            <input
+                                id="password"
+                                className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                type="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
                     </div>
-                    <div>
-                        <label htmlFor="cep" className="block text-orange-500">CEP</label>
-                        <input
-                            id="cep"
-                            className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
-                            type="text"
-                            name="cep"
-                            value={formData.cep}
-                            onChange={handleChange}
-                            required
-                        />
-                        {errors.cep && <p className="text-red-500">{errors.cep}</p>}
+                    <div className="mt-4">
+                        <button type="submit" disabled={isLoading} className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-md">
+                            {isLoading ? "Carregando..." : "Registrar"}
+                        </button>
                     </div>
-                    <div>
-                        <label htmlFor="numero" className="block text-orange-500">Número</label>
-                        <input
-                            id="numero"
-                            className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
-                            type="text"
-                            name="numero"
-                            value={formData.numero}
-                            onChange={handleChange}
-                            required
-                        />
+                    <div className="mt-4 text-center text-white">
+                        Já tem uma conta? 
+                        <Link href="/login" className="underline text-orange-500">Faça login</Link>
                     </div>
-                    <div>
-                        <label htmlFor="bairro" className="block text-orange-500">Bairro</label>
-                        <input
-                            id="bairro"
-                            className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
-                            type="text"
-                            name="bairro"
-                            value={formData.bairro}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="password" className="block text-orange-500">Senha</label>
-                        <input
-                            id="password"
-                            className="block mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2"
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-                </div>
-
-                <div className="mt-4">
-                    <Button type="submit" disabled={isLoading}>
-                        {isLoading ? "Carregando..." : "Registrar"}
-                    </Button>
-                </div>
-
-                <div className="mt-4 text-center text-white">
-                Já tem uma conta?
-                    <Link href="/login" className="underline  text-orange-500">Faça login</Link>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     );
-};
+}
 
 export default RegisterPage;

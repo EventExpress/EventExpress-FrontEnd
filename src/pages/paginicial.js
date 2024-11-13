@@ -38,7 +38,6 @@ const Paginicial = () => {
         if (anunciosResponse.data && Array.isArray(anunciosResponse.data.anuncios)) {
           const anunciosData = anunciosResponse.data.anuncios;
 
-          // Obter dados do locador
           const anunciosComLocadores = await Promise.all(
             anunciosData.map(async (anuncio) => {
               const userResponse = await axios.get(`${backendUrl}/api/user/${anuncio.user_id}`, {
@@ -78,11 +77,6 @@ const Paginicial = () => {
 
   const handleReservar = (anuncioId) => {
     router.push(`/agendados/create?anuncioId=${anuncioId}`);
-  };
-
-  const reloadPage = () => {
-    // Força a recarga da página para garantir que a NavBar seja atualizada com as informações do usuário
-    router.replace(router.asPath);
   };
 
   return (

@@ -22,6 +22,9 @@ export default function CreateReserva() {
     const [servicosData, setServicosData] = useState({});
     const [token, setToken] = useState(null);
     const [formapagamento, setFormaPagamento] = useState('select'); 
+    const [anuncio, setAnuncio] = useState(null);
+    const [locador, setLocador] = useState(null);
+    const [loading, setLoading] = useState(true);
     const router = useRouter();
     const { anuncioId } = router.query;
 
@@ -39,9 +42,57 @@ export default function CreateReserva() {
     }, [router]);
 
     useEffect(() => {
-        if (!token || !anuncioId) {
-            return;
+        if (anuncioId && token) {
+            console.log("Anuncio ID do query:", anuncioId);
+            const fetchAnuncio = async () => {
+                try {
+                    const response = await axios.get('http://localhost:8000/api/anuncios', {
+                        headers: { Authorization: `Bearer ${token}` },
+                    });
+            
+                    console.log('Dados recebidos:', response.data); // Verificar a estrutura de resposta
+            
+                    const anuncios = response.data.anuncios || []; // Ajuste conforme a estrutura real
+            
+                    const anuncio = anuncios.find((anuncio) => anuncio.id === parseInt(anuncioId));
+            
+                    if (anuncio) {
+                        console.log("Anúncio encontrado:", anuncio);
+                        setAnuncio(anuncio); // Agora estamos pegando o anúncio específico
+                    } else {
+                        setErrorMessage('Anúncio não encontrado.');
+                    }
+                    setLoading(false);
+                } catch (error) {
+                    console.error('Erro ao buscar o anúncio:', error);
+                    setErrorMessage('Erro ao buscar informações do anúncio.');
+                    setLoading(false);
+                }
+            };
+            
+            fetchAnuncio();
         }
+    }, [anuncioId, token]);
+    
+    useEffect(() => {
+        if (anuncio && anuncio.user_id && token) {
+            const fetchLocador = async () => {
+                try {
+                    const response = await axios.get(`http://localhost:8000/api/user/${anuncio.user_id}`, {
+                        headers: { Authorization: `Bearer ${token}` },
+                    });
+                    console.log('Locador:', response.data);  // Verifique o conteúdo da resposta
+                    setLocador(response.data);
+                } catch (error) {
+                    console.error('Erro ao buscar dados do locador:', error);
+                }
+            };
+            fetchLocador();
+        }
+    }, [anuncio, token]);
+
+    useEffect(() => {
+        if (!token || !anuncioId) return;
 
         const fetchServicos = async () => {
             try {
@@ -153,7 +204,6 @@ export default function CreateReserva() {
         const selectedHoraInicio = e.target.value;
         setHoraInicio(selectedHoraInicio);
 
-        // Verifica se o horário de fim está antes do início e ajusta se necessário
         if (dataInicio && dataFim && format(dataInicio, 'yyyy-MM-dd') === format(dataFim, 'yyyy-MM-dd') && selectedHoraInicio > horaFim) {
             setHoraFim(selectedHoraInicio);
         }
@@ -185,6 +235,7 @@ export default function CreateReserva() {
             !isAfter(date, startOfDay(new Date()))
         );
     };
+    
 
     const generateTimeOptions = (start = '00:00') => {
         const times = [];
@@ -206,17 +257,47 @@ export default function CreateReserva() {
         ? generateTimeOptions(horaInicio)
         : generateTimeOptions();
 
-    return (
-        <div>
-            <NavBar />
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white shadow-sm sm:rounded-lg">
-                        <div className="p-6 bg-white border-b border-gray-200 rounded-lg">
-                            <h2 className="font-semibold text-xl text-gray-900 leading-tight">Reservar Anúncio</h2>
-                            {errorMessage && <p className="text-red-500">{errorMessage}</p>}
-
-                            <form onSubmit={handleSubmit}>
+        return (
+            <div>
+                <NavBar />
+                <div className="py-12">
+                    <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                        <div className="bg-white shadow-sm sm:rounded-lg">
+                            <div className="p-6 bg-white border-b border-gray-200 rounded-lg">
+                                <h2 className="font-semibold text-xl text-gray-900 leading-tight">Reservar Anúncio</h2>
+                                {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+                                {loading ? (
+                                    <p>Carregando informações do anúncio...</p>
+                                ) : anuncio ? (
+                                    <div className="mt-4 flex items-start border-2 border-orange-500 bg-orange-100 p-6 rounded-lg shadow-md">
+                                        {anuncio.imagens && anuncio.imagens.length > 0 && (
+                                            <img
+                                                src={anuncio.imagens[0].image_path}
+                                                alt={anuncio.titulo}
+                                                className="w-2/5 h-auto rounded-lg mb-4"
+                                            />
+                                        )}        
+                                        <div className="ml-6 flex-1">
+                                            <h3 className="text-2xl font-semibold mb-2">{anuncio.titulo}</h3>
+                                            <p className="mb-40">{anuncio.descricao}</p>
+                                            <p className="text-gray-700">Capacidade: {anuncio.capacidade}</p>
+                                            <p className="text-gray-700">Valor: R$ {anuncio.valor}</p>
+                                            
+                                            {locador ? (
+                                                <div className="">
+                                                    <p className="">
+                                                        Locador: {locador.user?.nome || 'Locador não disponível'}
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <p>Locador não encontrado</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p>Não foi possível carregar os detalhes do anúncio.</p>
+                                )}
+                                <form onSubmit={handleSubmit}>
                                 <div className="flex space-x-4 mb-4">
                                     <div className="flex-1 bg-gray-200 p-4 rounded-lg">
                                         <label className="block text-sm font-medium text-orange-500 mb-2">Data de Início do Anúncio:</label>
@@ -325,20 +406,21 @@ export default function CreateReserva() {
                                 </div>
 
                                 <div className="mb-4">
-                                    <h3 className="font-semibold text-lg">Forma de Pagamento</h3>
-                                    <select
-                                        value={formapagamento}
-                                        onChange={(e) => setFormaPagamento(e.target.value)}
-                                        className="border border-gray-300 rounded-md p-2 w-full"
-                                    >
+                                <label htmlFor="formapagamento" className="block text-sm font-semibold">Forma de Pagamento</label>
+                                <select
+                                    id="formapagamento"
+                                    value={formapagamento}
+                                    onChange={(e) => setFormaPagamento(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                                >
                                         <option value="">Selecione uma forma de pagamento</option>
                                         <option value="pix">Pix</option>
                                         <option value="boleto">Boleto</option>
                                         <option value="cartao">Cartão de Débito</option>
                                         <option value="cartao">Cartão de Crédito</option>
                                         <option value="transferencia">Transaferência</option>
-                                    </select>
-                                </div>
+                                </select>
+                            </div>
 
                                 <button
                                     type="submit"

@@ -177,7 +177,7 @@ export default function Visualizaragendados() {
                                                         <img
                                                             src={anuncio.imagens[0].image_path}
                                                             alt={anuncio.titulo}
-                                                            className="mt-4 w-64 h-64 object-cover rounded-md"  // Ajuste o tamanho aqui
+                                                            className="mt-4 w-64 h-64 object-cover rounded-md"
                                                         />
                                                     ) : (
                                                         <p>Imagem não disponível</p>

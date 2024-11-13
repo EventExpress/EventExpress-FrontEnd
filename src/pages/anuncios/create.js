@@ -190,210 +190,219 @@ const CreateAnuncio = () => {
 
     return (
         <div>
-            <NavBar />
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-gray-700 p-6 rounded-lg shadow-md mb-6 overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6">
-                            {Object.keys(errors).length > 0 && (
-                                <div className="mb-4 font-medium text-sm text-red-600">
-                                    <strong>Erros:</strong>
-                                    <ul>
-                                        {Object.values(errors).map((error, index) => (
-                                            <li key={index}>{error}</li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-    
-                            {successMessage && (
-                                <div className="mb-4 font-medium text-sm text-green-600">
-                                    <strong>{successMessage}</strong>
-                                </div>
-                            )}
-    
-                            <h2 className="font-semibold text-2xl text-white leading-tight">Adicionar Anúncio</h2>
-                            <form onSubmit={handleSubmit}>
-                                {/* Título */}
-                                <div className="mt-4">
-                                    <label htmlFor="titulo" className="text-orange-500 capitalize">Título:</label>
-                                    <input
-                                        type="text"
-                                        name="titulo"
-                                        id="titulo"
-                                        value={formData.titulo}
-                                        onChange={handleChange}
-                                        required
-                                        className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
-                                    />
-                                </div>
-    
-                                {/* Endereço (CEP, cidade, número, bairro) na mesma linha */}
-                                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                                    <div>
-                                        <label htmlFor="cep" className="text-orange-500">CEP:</label>
-                                        <input
-                                            type="text"
-                                            name="cep"
-                                            id="cep"
-                                            value={formData.cep}
-                                            onChange={handleChange}
-                                            required
-                                            className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
-                                        />
-                                    </div>
-    
-                                    <div>
-                                        <label htmlFor="cidade" className="text-orange-500">Cidade:</label>
-                                        <input
-                                            type="text"
-                                            name="cidade"
-                                            id="cidade"
-                                            value={formData.cidade}
-                                            onChange={handleChange}
-                                            required
-                                            className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
-                                        />
-                                    </div>
-    
-                                    <div>
-                                        <label htmlFor="numero" className="text-orange-500">Número:</label>
-                                        <input
-                                            type="text"
-                                            name="numero"
-                                            id="numero"
-                                            value={formData.numero}
-                                            onChange={handleChange}
-                                            required
-                                            className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
-                                        />
-                                    </div>
-    
-                                    <div>
-                                        <label htmlFor="bairro" className="text-orange-500">Bairro:</label>
-                                        <input
-                                            type="text"
-                                            name="bairro"
-                                            id="bairro"
-                                            value={formData.bairro}
-                                            onChange={handleChange}
-                                            required
-                                            className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
-                                        />
-                                    </div>
-                                </div>
-    
-                                {/* Outros campos */}
-                                <div className="mt-4">
-                                    <label htmlFor="descricao" className="text-orange-500">Descrição:</label>
-                                    <textarea
-                                        name="descricao"
-                                        id="descricao"
-                                        value={formData.descricao}
-                                        onChange={handleChange}
-                                        required
-                                        className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
-                                    />
-                                </div>
-                                <div className="mt-4">
-                                    <label htmlFor="capacidade" className="text-orange-500">Capacidade:</label>
-                                    <input
-                                        type="number"
-                                        name="capacidade"
-                                        id="capacidade"
-                                        value={formData.capacidade}
-                                        onChange={handleChange}
-                                        required
-                                        className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
-                                    />
-                                </div>
-                                                        
-                                <div className="mt-4">
-                                    <label htmlFor="valor" className="text-orange-500">Valor:</label>
-                                    <input
-                                        type="number"
-                                        name="valor"
-                                        id="valor"
-                                        value={formData.valor}
-                                        onChange={handleChange}
-                                        required
-                                        className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
-                                    />
-                                </div>
-    
-                                {/* Datas Indisponíveis */}
-                                <div className="mt-4">
-                                    <label className="text-orange-500">Datas Indisponíveis:</label>
-                                    <div className="flex flex-col">
-                                        <DatePicker
-                                            selected={dataSelecionada}
-                                            onChange={(date) => setDataSelecionada(date)}
-                                            dateFormat="yyyy/MM/dd"
-                                            className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
-                                            placeholderText="Selecione uma data"
-                                        />
-                                        <div className="flex mt-2">
-                                            <button type="button" onClick={handleAddDate} className="bg-blue-500 text-white px-3 py-1 rounded text-sm">Adicionar</button>
-                                        </div>
-                                        <ul className="mt-2">
-                                            {datasIndisponiveis.map((timestamp, index) => (
-                                                <li key={index} className="flex justify-between items-center">
-                                                    {new Date(timestamp).toLocaleDateString()}
-                                                    <button type="button" onClick={() => handleRemoveDate(timestamp)} className="text-red-500 ml-2">Remover</button>
-                                                </li>
+            <NavBar /> {/* Incluindo a NavBar */}
+            <div
+                className="flex flex-col items-center p-4 min-h-screen"
+                style={{
+                    backgroundImage: "url('/images/teste.jpg')",
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                }}
+            >
+                <div className="py-5">
+                    <div className="max-w-7xl mx-auto sm:px-5 lg:px-8">
+                        <div className="bg-gray-700 p-6 rounded-lg shadow-md mb-6 overflow-hidden shadow-sm sm:rounded-lg">
+                            <div className="p-6">
+                                {Object.keys(errors).length > 0 && (
+                                    <div className="mb-4 font-medium text-sm text-red-600">
+                                        <strong>Erros:</strong>
+                                        <ul>
+                                            {Object.values(errors).map((error, index) => (
+                                                <li key={index}>{error}</li>
                                             ))}
                                         </ul>
                                     </div>
-                                </div>
+                                )}
     
-                                {/* Imagens */}
-                                <div className="mt-4">
-                                    <label className="text-orange-500">Imagens:</label>
-                                    <input
-                                        type="file"
-                                        multiple
-                                        onChange={handleImageChange}
-                                        className="bg-gray-700 text-white file:border-none file:bg-orange-500 file:rounded-md file:px-2 file:py-2 hover:file:bg-orange-600 focus:outline-none focus:ring-0"
-                                    />
-                                </div>
+                                {successMessage && (
+                                    <div className="mb-4 font-medium text-sm text-green-600">
+                                        <strong>{successMessage}</strong>
+                                    </div>
+                                )}
     
-                                {/* Categorias */}
-                                <div className="mt-6">
-                                    <label className="text-orange-500">Categorias:</label>
-                                    <button 
-                                        type="button" 
-                                        onClick={toggleCheckboxes} 
-                                        className="text-black bg-orange-500 hover:bg-orange-600 focus:ring-4 focus:ring-orange-300 rounded-md px-4 py-2 mt-2 transition duration-200 ease-in-out"
-                                    >
-                                        Selecionar Categorias
-                                    </button>
+                                <h2 className="font-semibold text-2xl text-white leading-tight">Adicionar Anúncio</h2>
+                                <form onSubmit={handleSubmit}>
+                                    {/* Título */}
+                                    <div className="mt-4">
+                                        <label htmlFor="titulo" className="text-orange-500 capitalize">Título:</label>
+                                        <input
+                                            type="text"
+                                            name="titulo"
+                                            id="titulo"
+                                            value={formData.titulo}
+                                            onChange={handleChange}
+                                            required
+                                            className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
+                                        />
+                                    </div>
     
-                                    {checkboxOpen && (
-                                        <div className="mt-4 bg-gray-800 border border-gray-500 rounded-md p-4 shadow-lg">
-                                            {categorias.length > 0 ? (
-                                                categorias.map((categoria) => (
-                                                    <div key={categoria.id} className="flex items-center space-x-2 mb-3">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={formData.categoriaId.includes(categoria.id)}
-                                                            onChange={() => handleCheckboxChange(categoria.id)}
-                                                            className="rounded border-gray-300 text-orange-500 focus:ring-2 focus:ring-orange-500"
-                                                        />
-                                                        <label className="text-white">{categoria.titulo}</label>
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                <div className="text-gray-400">Nenhuma categoria disponível.</div>
-                                            )}
+                                    {/* Endereço (CEP, cidade, número, bairro) na mesma linha */}
+                                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                                        <div>
+                                            <label htmlFor="cep" className="text-orange-500">CEP:</label>
+                                            <input
+                                                type="text"
+                                                name="cep"
+                                                id="cep"
+                                                value={formData.cep}
+                                                onChange={handleChange}
+                                                required
+                                                className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
+                                            />
                                         </div>
-                                    )}
-                                </div>
     
-                                {/* Botão de Envio */}
-                                <div className="mt-6">
-                                    <Button type="submit" loading={isLoading} disabled={isLoading}>Criar Anúncio</Button>
-                                </div>
-                            </form>
+                                        <div>
+                                            <label htmlFor="cidade" className="text-orange-500">Cidade:</label>
+                                            <input
+                                                type="text"
+                                                name="cidade"
+                                                id="cidade"
+                                                value={formData.cidade}
+                                                onChange={handleChange}
+                                                required
+                                                className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
+                                            />
+                                        </div>
+    
+                                        <div>
+                                            <label htmlFor="numero" className="text-orange-500">Número:</label>
+                                            <input
+                                                type="text"
+                                                name="numero"
+                                                id="numero"
+                                                value={formData.numero}
+                                                onChange={handleChange}
+                                                required
+                                                className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
+                                            />
+                                        </div>
+    
+                                        <div>
+                                            <label htmlFor="bairro" className="text-orange-500">Bairro:</label>
+                                            <input
+                                                type="text"
+                                                name="bairro"
+                                                id="bairro"
+                                                value={formData.bairro}
+                                                onChange={handleChange}
+                                                required
+                                                className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
+                                            />
+                                        </div>
+                                    </div>
+    
+                                    {/* Outros campos */}
+                                    <div className="mt-4">
+                                        <label htmlFor="descricao" className="text-orange-500">Descrição:</label>
+                                        <textarea
+                                            name="descricao"
+                                            id="descricao"
+                                            value={formData.descricao}
+                                            onChange={handleChange}
+                                            required
+                                            className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
+                                        />
+                                    </div>
+                                    <div className="mt-4">
+                                        <label htmlFor="capacidade" className="text-orange-500">Capacidade:</label>
+                                        <input
+                                            type="number"
+                                            name="capacidade"
+                                            id="capacidade"
+                                            value={formData.capacidade}
+                                            onChange={handleChange}
+                                            required
+                                            className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
+                                        />
+                                    </div>
+                                                        
+                                    <div className="mt-4">
+                                        <label htmlFor="valor" className="text-orange-500">Valor:</label>
+                                        <input
+                                            type="number"
+                                            name="valor"
+                                            id="valor"
+                                            value={formData.valor}
+                                            onChange={handleChange}
+                                            required
+                                            className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
+                                        />
+                                    </div>
+    
+                                    {/* Datas Indisponíveis */}
+                                    <div className="mt-4">
+                                        <label className="text-orange-500">Datas Indisponíveis:</label>
+                                        <div className="flex flex-col">
+                                            <DatePicker
+                                                selected={dataSelecionada}
+                                                onChange={(date) => setDataSelecionada(date)}
+                                                dateFormat="yyyy/MM/dd"
+                                                className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
+                                                placeholderText="Selecione uma data"
+                                            />
+                                            <div className="flex mt-2">
+                                                <button type="button" onClick={handleAddDate} className="bg-blue-500 text-white px-3 py-1 rounded text-sm">Adicionar</button>
+                                            </div>
+                                            <ul className="mt-2">
+                                                {datasIndisponiveis.map((timestamp, index) => (
+                                                    <li key={index} className="flex justify-between items-center">
+                                                        {new Date(timestamp).toLocaleDateString()}
+                                                        <button type="button" onClick={() => handleRemoveDate(timestamp)} className="text-red-500 ml-2">Remover</button>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+    
+                                    {/* Imagens */}
+                                    <div className="mt-4">
+                                        <label className="text-orange-500">Imagens:</label>
+                                        <input
+                                            type="file"
+                                            multiple
+                                            onChange={handleImageChange}
+                                            className="bg-gray-700 text-white file:border-none file:bg-orange-500 file:rounded-md file:px-2 file:py-2 hover:file:bg-orange-600 focus:outline-none focus:ring-0"
+                                        />
+                                    </div>
+    
+                                    {/* Categorias */}
+                                    <div className="mt-6">
+                                        <label className="text-orange-500">Categorias:</label>
+                                        <button 
+                                            type="button" 
+                                            onClick={toggleCheckboxes} 
+                                            className="text-black bg-orange-500 hover:bg-orange-600 focus:ring-4 focus:ring-orange-300 rounded-md px-4 py-2 mt-2 transition duration-200 ease-in-out"
+                                        >
+                                            Selecionar Categorias
+                                        </button>
+    
+                                        {checkboxOpen && (
+                                            <div className="mt-4 bg-gray-800 border border-gray-500 rounded-md p-4 shadow-lg">
+                                                {categorias.length > 0 ? (
+                                                    categorias.map((categoria) => (
+                                                        <div key={categoria.id} className="flex items-center space-x-2 mb-3">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={formData.categoriaId.includes(categoria.id)}
+                                                                onChange={() => handleCheckboxChange(categoria.id)}
+                                                                className="rounded border-gray-300 text-orange-500 focus:ring-2 focus:ring-orange-500"
+                                                            />
+                                                            <label className="text-white">{categoria.titulo}</label>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="text-gray-400">Nenhuma categoria disponível.</div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+    
+                                    {/* Botão de Envio */}
+                                    <div className="mt-6">
+                                        <Button type="submit" loading={isLoading} disabled={isLoading}>Criar Anúncio</Button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -401,7 +410,6 @@ const CreateAnuncio = () => {
             <Footer />
         </div>
     );
-    
-};
-
+};    
 export default CreateAnuncio;
+
