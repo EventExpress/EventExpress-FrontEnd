@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
+import Swal from 'sweetalert2';
 
 const ProfileForm = () => {
     const [userData, setUserData] = useState({
@@ -86,10 +87,15 @@ const ProfileForm = () => {
         e.preventDefault();
         const token = localStorage.getItem('token');
         if (!token) {
-            alert('Token de autenticação não encontrado.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: 'Token de autenticação não encontrado.',
+                confirmButtonText: 'OK'
+            });
             return;
         }
-
+    
         try {
             const response = await axios.put(
                 `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/${userData.id}`,
@@ -101,17 +107,30 @@ const ProfileForm = () => {
                     },
                 }
             );
-
+    
             if (response.status === 200) {
-                alert('Perfil atualizado com sucesso');
-                window.location.replace('/paginicial');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Sucesso!',
+                    text: 'Perfil atualizado com sucesso.',
+                    confirmButtonText: 'OK',
+                    timer: 3000,
+                    timerProgressBar: true
+                }).then(() => {
+                    window.location.replace('/paginicial');
+                });
             } else {
                 console.error('Erro ao atualizar o perfil:', response.data);
                 throw new Error('Erro ao atualizar o perfil');
             }
         } catch (error) {
             console.error('Erro na requisição de atualização do perfil:', error.response?.data || error);
-            alert('Erro ao atualizar o perfil: ' + (error.response?.data.message || 'Erro desconhecido'));
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: error.response?.data.message || 'Erro desconhecido ao atualizar o perfil',
+                confirmButtonText: 'OK'
+            });
         }
     };
 
