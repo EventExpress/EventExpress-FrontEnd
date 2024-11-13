@@ -96,27 +96,39 @@ const RegisterPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-
+    
         try {
             const response = await axios.post("http://localhost:8000/api/register", formData);
             console.log("Usuário registrado com sucesso:", response.data);
-            router.push("/login");
+            setMessage("Usuário registrado com sucesso!");
+            setShowPopup(true);
+            setTimeout(() => {
+                setShowPopup(false);
+                router.push("/login");
+            }, 2000); // Exibe o popup por 2 segundos antes de redirecionar
         } catch (error) {
             if (error.response) {
                 console.error("Erro no registro:", error.response.data);
+                setMessage(`Erro no registro: ${error.response.data.message || "Erro desconhecido"}`);
             } else {
                 console.error("Erro na requisição:", error.message);
+                setMessage(`Erro na requisição: ${error.message}`);
             }
+            setShowPopup(true);
+            setTimeout(() => setShowPopup(false), 2000); // Exibe o popup por 2 segundos
         } finally {
             setIsLoading(false);
         }
     };
 
     const isLocadorOrPrestador = formData.tipousu.includes("Locador") || formData.tipousu.includes("Prestador");
+    const [message, setMessage] = useState(""); // Estado para armazenar a mensagem do popup
+    const [showPopup, setShowPopup] = useState(false);
+
 
     return (
         <div>
-            <NavBar /> {/* Incluindo a NavBar */}
+            <NavBar /> {}
             <div
                 className="flex flex-col items-center p-4 min-h-screen"
                 style={{
@@ -125,6 +137,11 @@ const RegisterPage = () => {
                     backgroundPosition: "center", 
                 }}
             >
+                            {showPopup && (
+                <div className="fixed top-0 left-0 right-0 p-4 bg-green-500 text-white text-center z-50">
+                    {message}
+                </div>
+            )}
                 <ApplicationLogo className="mb-4" />
                 <form onSubmit={handleSubmit} className="bg-gray-700 p-8 rounded-lg shadow-lg max-w-3xl w-full mx-auto">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -319,3 +336,5 @@ const RegisterPage = () => {
 }
 
 export default RegisterPage;
+
+
