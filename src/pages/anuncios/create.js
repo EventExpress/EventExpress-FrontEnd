@@ -6,6 +6,7 @@ import Button from '@/components/Button';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import Footer from '../../components/Footer';
+import Modal from 'react-modal'; 
 
 const CreateAnuncio = () => {
     const router = useRouter();
@@ -30,8 +31,8 @@ const CreateAnuncio = () => {
     const [checkboxOpen, setCheckboxOpen] = useState(false);
     const [datasIndisponiveis, setDatasIndisponiveis] = useState([]);
     const [dataSelecionada, setDataSelecionada] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // Fetching available categories
     const fetchCategorias = async () => {
         try {
             const token = localStorage.getItem('token');
@@ -60,54 +61,69 @@ const CreateAnuncio = () => {
         fetchCategorias();
     }, []);
 
-    // Handling input changes
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
     };
 
+    const resizeImage = (file, maxWidth = 800, maxHeight = 800) => {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            const reader = new FileReader();
+    
+            reader.onload = (e) => {
+                img.src = e.target.result;
+            };
+    
+            reader.onerror = (error) => reject(error);
+            reader.readAsDataURL(file);
+    
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                let width = img.width;
+                let height = img.height;
+    
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height = Math.round(height * (maxWidth / width));
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width = Math.round(width * (maxHeight / height));
+                        height = maxHeight;
+                    }
+                }
+    
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+    
+                const resizedDataUrl = canvas.toDataURL(file.type);
+                resolve(resizedDataUrl);
+            };
+        });
+    };
+    
     const handleImageChange = async (e) => {
         const files = Array.from(e.target.files);
-        const base64Images = await Promise.all(files.map(file => convertToBase64AndResize(file, 800, 600))); // Redimensionando para 800x600
-        setFormData({ ...formData, imagens: base64Images });
+        const resizedImages = await Promise.all(files.map(async (file) => {
+            return await resizeImage(file);
+        }));
+        setFormData({ ...formData, imagens: resizedImages });
     };
 
-    const convertToBase64AndResize = (file, maxWidth, maxHeight) => {
+    const convertToBase64 = (file) => {
         return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => {
-                const img = new Image();
-                img.src = reader.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-
-                    // Calculate new dimensions while maintaining aspect ratio
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > height) {
-                        if (width > maxWidth) {
-                            height *= maxWidth / width;
-                            width = maxWidth;
-                        }
-                    } else {
-                        if (height > maxHeight) {
-                            width *= maxHeight / height;
-                            height = maxHeight;
-                        }
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    ctx.drawImage(img, 0, 0, width, height);
-                    const base64 = canvas.toDataURL('image/jpeg'); // Utilize o formato que você preferir
-                    resolve(base64);
-                };
-                img.onerror = (error) => reject(error);
-            };
-            reader.onerror = (error) => reject(error);
+            if (typeof window !== 'undefined') {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = (error) => reject(error);
+            } else {
+                reject(new Error("FileReader não é suportado no servidor"));
+            }
         });
     };
 
@@ -171,7 +187,10 @@ const CreateAnuncio = () => {
                     imagens: [],
                 });
                 setDatasIndisponiveis([]);
-                router.push('/paginicial');
+                setIsModalOpen(true);
+                setTimeout(() => {
+                    router.push('/paginicial');
+                }, 2000);
             }
         } catch (error) {
             if (error.response && error.response.data) {
@@ -183,6 +202,7 @@ const CreateAnuncio = () => {
             setIsLoading(false);
         }
     };
+    const closeModal = () => setIsModalOpen(false);
 
     const toggleCheckboxes = () => {
         setCheckboxOpen(!checkboxOpen);
@@ -190,7 +210,7 @@ const CreateAnuncio = () => {
 
     return (
         <div>
-            <NavBar /> {/* Incluindo a NavBar */}
+            <NavBar /> {}
             <div
                 className="flex flex-col items-center p-4 min-h-screen"
                 style={{
@@ -222,7 +242,7 @@ const CreateAnuncio = () => {
     
                                 <h2 className="font-semibold text-2xl text-white leading-tight">Adicionar Anúncio</h2>
                                 <form onSubmit={handleSubmit}>
-                                    {/* Título */}
+                                    {}
                                     <div className="mt-4">
                                         <label htmlFor="titulo" className="text-orange-500 capitalize">Título:</label>
                                         <input
@@ -236,7 +256,7 @@ const CreateAnuncio = () => {
                                         />
                                     </div>
     
-                                    {/* Endereço (CEP, cidade, número, bairro) na mesma linha */}
+                                    {}
                                     <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                                         <div>
                                             <label htmlFor="cep" className="text-orange-500">CEP:</label>
@@ -291,7 +311,7 @@ const CreateAnuncio = () => {
                                         </div>
                                     </div>
     
-                                    {/* Outros campos */}
+                                    {}
                                     <div className="mt-4">
                                         <label htmlFor="descricao" className="text-orange-500">Descrição:</label>
                                         <textarea
@@ -329,7 +349,7 @@ const CreateAnuncio = () => {
                                         />
                                     </div>
     
-                                    {/* Datas Indisponíveis */}
+                                    {}
                                     <div className="mt-4">
                                         <label className="text-orange-500">Datas Indisponíveis:</label>
                                         <div className="flex flex-col">
@@ -354,18 +374,30 @@ const CreateAnuncio = () => {
                                         </div>
                                     </div>
     
-                                    {/* Imagens */}
+                                    {}
                                     <div className="mt-4">
-                                        <label className="text-orange-500">Imagens:</label>
+                                        <label htmlFor="imagens" className="text-orange-500">Imagens:</label>
                                         <input
                                             type="file"
+                                            name="imagens"
+                                            id="imagens"
                                             multiple
+                                            accept="image/*"
                                             onChange={handleImageChange}
-                                            className="bg-gray-700 text-white file:border-none file:bg-orange-500 file:rounded-md file:px-2 file:py-2 hover:file:bg-orange-600 focus:outline-none focus:ring-0"
+                                            className="block mt-1 w-full rounded-md border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-500"
                                         />
+                                        <div className="mt-2">
+                                            {formData.imagens && formData.imagens.length > 0 && (
+                                                <div className="flex flex-wrap gap-4">
+                                                    {formData.imagens.map((image, index) => (
+                                                        <img key={index} src={image} alt={`Imagem ${index + 1}`} className="w-32 h-32 object-cover rounded-md" />
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
     
-                                    {/* Categorias */}
+                                    {}
                                     <div className="mt-6">
                                         <label className="text-orange-500">Categorias:</label>
                                         <button 
@@ -397,7 +429,7 @@ const CreateAnuncio = () => {
                                         )}
                                     </div>
     
-                                    {/* Botão de Envio */}
+                                    {}
                                     <div className="mt-6">
                                         <Button type="submit" loading={isLoading} disabled={isLoading}>Criar Anúncio</Button>
                                     </div>
@@ -406,10 +438,30 @@ const CreateAnuncio = () => {
                         </div>
                     </div>
                 </div>
+                {/* Popup de Sucesso */}
+                <Modal
+                    isOpen={!!successMessage}
+                    onRequestClose={() => setSuccessMessage('')}
+                    contentLabel="Anúncio Criado"
+                    className="fixed inset-0 flex justify-center items-center bg-gray-800 bg-opacity-50"
+                    overlayClassName="fixed inset-0 bg-gray-800 bg-opacity-50"
+                >
+                    <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full text-center">
+                        <h2 className="text-xl font-semibold text-green-600">Sucesso!</h2>
+                        <p className="mt-2 text-gray-700">{successMessage}</p>
+                        <button
+                            onClick={() => setSuccessMessage('')}
+                            className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                        >
+                            Fechar
+                        </button>
+                    </div>
+                </Modal>
             </div>
             <Footer />
         </div>
     );
-};    
+};
+
 export default CreateAnuncio;
 
