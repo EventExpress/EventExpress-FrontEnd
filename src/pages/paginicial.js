@@ -9,7 +9,7 @@ const Paginicial = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const anunciosPerPage = 10;
+  const anunciosPerPage = 8;
   const router = useRouter();
 
   useEffect(() => {
@@ -38,24 +38,28 @@ const Paginicial = () => {
         if (anunciosResponse.data && Array.isArray(anunciosResponse.data.anuncios)) {
           const anunciosData = anunciosResponse.data.anuncios;
 
-          const anunciosComLocadores = await Promise.all(
-            anunciosData.map(async (anuncio) => {
-              const userResponse = await axios.get(`${backendUrl}/api/user/${anuncio.user_id}`, {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  'Content-Type': 'application/json',
-                },
-              });
-              return { ...anuncio, user: userResponse.data.user };
+          // Requisição paralela para buscar os locadores
+          const locadoresPromises = anunciosData.map((anuncio) => 
+            axios.get(`${backendUrl}/api/user/${anuncio.user_id}`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
             })
           );
+
+          const locadoresResponse = await Promise.all(locadoresPromises);
+
+          const anunciosComLocadores = anunciosData.map((anuncio, index) => ({
+            ...anuncio,
+            user: locadoresResponse[index].data.user,
+          }));
 
           setAnuncios(anunciosComLocadores);
         } else {
           setAnuncios([]);
           console.log('Nenhum anúncio encontrado ou estrutura inesperada.');
         }
-
       } catch (error) {
         const errorMessage = error.response
           ? error.response.data.message || 'Erro desconhecido ao buscar dados.'
@@ -66,7 +70,6 @@ const Paginicial = () => {
         setLoading(false);
       }
     };
-    
 
     fetchAnuncios();
   }, [router]);
@@ -97,7 +100,11 @@ const Paginicial = () => {
               <div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {currentAnuncios.map(anuncio => (
-                    <div key={anuncio.id} className="border rounded-lg p-4 shadow-md">
+                    <div 
+                      key={anuncio.id} 
+                      className="border rounded-lg p-4 shadow-md cursor-pointer"
+                      onClick={() => handleReservar(anuncio.id)} // Torna o card clicável
+                    >
                       <h2 className="text-xl font-bold">{anuncio.titulo || 'Título não disponível'}</h2>
                       <p className="text-gray-700">{anuncio.descricao || 'Descrição não disponível'}</p>
                       <p className="text-lg font-semibold text-orange-500">
@@ -121,7 +128,10 @@ const Paginicial = () => {
                         Locador: {anuncio.user && anuncio.user.nome ? anuncio.user.nome : 'Locador não disponível'}
                       </p>
                       <button
-                        onClick={() => handleReservar(anuncio.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();  // Impede que o clique no botão dispare o evento do card
+                          handleReservar(anuncio.id);
+                        }}
                         className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                       >
                         Reservar
