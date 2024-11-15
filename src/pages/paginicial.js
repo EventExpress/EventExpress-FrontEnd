@@ -106,7 +106,9 @@ const Paginicial = () => {
                       onClick={() => handleReservar(anuncio.id)} // Torna o card clicável
                     >
                       <h2 className="text-xl font-bold">{anuncio.titulo || 'Título não disponível'}</h2>
-                      <p className="text-gray-700">{anuncio.descricao || 'Descrição não disponível'}</p>
+                      <p className="text-gray-700">
+                        {anuncio.descricao ? `${anuncio.descricao.slice(0, 50)}${anuncio.descricao.length > 50 ? '...' : ''}` : 'Descrição não disponível'}
+                      </p>
                       <p className="text-lg font-semibold text-orange-500">
                         {anuncio.valor ? `R$${anuncio.valor} ` : 'Valor não disponível'}
                       </p>

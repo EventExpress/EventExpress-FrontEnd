@@ -1,68 +1,48 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const PaymentModal = ({ isOpen, onClose, onSelectPayment }) => {
     const [selectedPayment, setSelectedPayment] = useState('');
     const [expiryDate, setExpiryDate] = useState('');
 
-    const handleSelectPayment = (paymentMethod) => {
+    const handleSelectPayment = (e) => {
+        const paymentMethod = e.target.value;
         setSelectedPayment(paymentMethod);
         onSelectPayment(paymentMethod);
     };
 
     const handleExpiryDateChange = (e) => {
-        // Remove todos os caracteres não numéricos
         let value = e.target.value.replace(/\D/g, '');
         
         // Formata a data para MM/AA
         if (value.length <= 2) {
-            value = value.replace(/(\d{2})/, '$1'); // Exibe apenas o mês
+            value = value.replace(/(\d{2})/, '$1');
         } else if (value.length <= 4) {
-            value = value.replace(/(\d{2})(\d{2})/, '$1/$2'); // Adiciona a barra
+            value = value.replace(/(\d{2})(\d{2})/, '$1/$2');
         }
 
-        // Limita a data a 5 caracteres (MM/AA)
         setExpiryDate(value.slice(0, 5));
     };
 
-    // Verifica se o modal está aberto e renderiza ou não
     if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-96">
                 <h3 className="text-xl font-semibold mb-4">Selecione a Forma de Pagamento</h3>
-                <button 
-                    className="block w-full mb-2 p-2 text-center text-white bg-blue-500 rounded-md"
-                    onClick={() => handleSelectPayment('Pix')}
-                >
-                    Pix
-                </button>
-                <button 
-                    className="block w-full mb-2 p-2 text-center text-white bg-blue-500 rounded-md"
-                    onClick={() => handleSelectPayment('Boleto')}
-                >
-                    Boleto
-                </button>
-                <button 
-                    className="block w-full mb-2 p-2 text-center text-white bg-blue-500 rounded-md"
-                    onClick={() => handleSelectPayment('Cartão de Débito')}
-                >
-                    Cartão de Débito
-                </button>
-                <button 
-                    className="block w-full mb-2 p-2 text-center text-white bg-blue-500 rounded-md"
-                    onClick={() => handleSelectPayment('Cartão de Crédito')}
-                >
-                    Cartão de Crédito
-                </button>
-                <button 
-                    className="block w-full mb-2 p-2 text-center text-white bg-blue-500 rounded-md"
-                    onClick={() => handleSelectPayment('Transferência')}
-                >
-                    Transferência
-                </button>
                 
-                {/* Renderização Condicional */}
+                <select
+                    className="w-full p-2 mb-4 border rounded-md"
+                    value={selectedPayment}
+                    onChange={handleSelectPayment}
+                >
+                    <option value="">Selecione uma forma de pagamento</option>
+                    <option value="Pix">Pix</option>
+                    <option value="Boleto">Boleto</option>
+                    <option value="Cartão de Débito">Cartão de Débito</option>
+                    <option value="Cartão de Crédito">Cartão de Crédito</option>
+                    <option value="Transferência">Transferência</option>
+                </select>
+
                 <div className="mt-4">
                     {selectedPayment === 'Pix' && (
                         <div>
@@ -104,9 +84,9 @@ const PaymentModal = ({ isOpen, onClose, onSelectPayment }) => {
                                     type="text" 
                                     className="w-full p-2 mb-4 border rounded-md" 
                                     placeholder="MM/AA"
-                                    maxLength="5" // Limita a 5 caracteres (MM/AA)
-                                    value={expiryDate} // Vincula ao estado
-                                    onChange={handleExpiryDateChange} // Atualiza ao digitar
+                                    maxLength="5"
+                                    value={expiryDate}
+                                    onChange={handleExpiryDateChange} 
                                 />
                                 
                                 <label className="block mb-2">Código de Segurança</label>
@@ -132,7 +112,7 @@ const PaymentModal = ({ isOpen, onClose, onSelectPayment }) => {
 
                 <div className="mt-4 text-center">
                     <button 
-                        className="text-red-500" 
+                        className="text-white-500" 
                         onClick={onClose}
                     >
                         Fechar

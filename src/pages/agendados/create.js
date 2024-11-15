@@ -2,13 +2,15 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import Calendar from 'react-calendar';
-import { format, isAfter, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import 'react-calendar/dist/Calendar.css';
 import NavBar from '../../components/NavBar';
 import '../../app/globals.css';
 import Footer from '../../components/Footer';
 import PaymentModal from '../../components/PaymentModal';
+import { format } from 'date-fns';
+import { isAfter } from 'date-fns';
+import { startOfDay } from 'date-fns';
 
 export default function CreateReserva() {
     const [dataInicio, setDataInicio] = useState(null);
@@ -29,6 +31,24 @@ export default function CreateReserva() {
     const [formapagamento, setFormaPagamento] = useState('select');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { anuncioId } = router.query;
+    const [diasSelecionados, setDiasSelecionados] = useState([]);
+
+    const calcularDias = (inicio, fim) => {
+        const dias = [];
+        let currentDate = new Date(inicio);
+        const endDate = new Date(fim);
+
+        if (format(currentDate, 'yyyy-MM-dd') === format(endDate, 'yyyy-MM-dd')) {
+            dias.push(currentDate);
+        } else {
+            while (currentDate <= endDate) {
+                dias.push(new Date(currentDate));
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+        }
+        return dias;
+    };
+    
 
     const openModal = () => setIsModalOpen(true);
     const closeModal = () => setIsModalOpen(false);
@@ -124,6 +144,32 @@ export default function CreateReserva() {
         fetchServicos();
         fetchDatasIndisponiveis();
     }, [anuncioId, token]);
+
+    const calcularValorTotal = () => {
+        if (!anuncio || !dataInicio || !dataFim) return 0;
+        
+        const diasReserva = calcularDias(dataInicio, dataFim).length;
+        let valorTotal = anuncio.valor * diasReserva; 
+    
+        servicos.forEach((servico) => {
+            if (servicosIds.includes(servico.id)) {
+                const diasServico = calcularDias(servicosData[servico.id]?.dataInicio, servicosData[servico.id]?.dataFim).length;
+                valorTotal += parseFloat(servico.valor) * diasServico; 
+            }
+        });
+        
+        return valorTotal;
+    };
+
+    const valorTotal = calcularValorTotal();
+    
+
+    useEffect(() => {
+        if (dataInicio && dataFim) {
+            const dias = calcularDias(dataInicio, dataFim);
+            setDiasSelecionados(dias);
+        }
+    }, [dataInicio, dataFim]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -280,14 +326,10 @@ export default function CreateReserva() {
                         ) : anuncio ? (
                           <div className="mt-4 flex items-start border-2 border-orange-500 bg-orange-100 p-6 rounded-lg shadow-md mb-6">
                             {anuncio.imagens && anuncio.imagens.length > 0 && (
-                              <img
-                                src={anuncio.imagens[0].image_path}
-                                alt={anuncio.titulo}
-                                className="w-2/5 h-auto rounded-lg mb-4"
-                              />
+                              <img src={anuncio.imagens[0].image_path} alt={anuncio.titulo} className="w-2/5 h-auto rounded-lg mb-4"/>
                             )}
                             <div className="ml-6 flex-1">
-                              <p className="mb-52">{anuncio.descricao}</p>
+                              <p className="mb-40">{anuncio.descricao}</p>
                               <p><strong>Capacidade:</strong> {anuncio.capacidade} Pessoas</p>
                               <p><strong>R$:</strong>{anuncio.valor}</p>
                             </div>
@@ -380,6 +422,10 @@ export default function CreateReserva() {
                                     ) : (
                                         <p className="text-gray-500">Nenhum serviço disponível.</p>
                                     )}
+                                </div>
+                                <div className="flex justify-between items-center mt-4">
+                                    <span className="font-bold text-lg">Valor Total:</span>
+                                    <span className="font-semibold text-xl text-orange-500">R$ {valorTotal.toFixed(2)}</span>
                                 </div>
                                 <div className="flex items-center mb-4">
                                     <button type="button" className="p-2 bg-blue-500 text-white rounded-md"onClick={openModal}>Selecionar Forma de Pagamento</button>
