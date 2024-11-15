@@ -56,7 +56,7 @@ button:hover {
 /* Estilos personalizados para o calendário */
 .custom-calendar {
   background-color: #f8f9fa; 
-  border-radius: 8px;
+  border-radius: 15px;
   padding: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -67,7 +67,7 @@ button:hover {
 }
 
 .custom-calendar .react-calendar__tile {
-  color: #333; 
+  color: #000000; 
 }
 
 .custom-calendar .react-calendar__tile--now {
@@ -88,7 +88,17 @@ button:hover {
 }
 
 .calendar-container {
-  background-color: #f0f0f0; /* cor de fundo cinza */
+  background-color: #f0f0f0; 
   padding: 1rem;
   border-radius: 8px;
+}
+
+.custom-time-picker input {
+  font-size: 16px !important;
+  height: 50px !important;
+  padding: 10px !important;
+}
+
+.react-time-picker__input {
+  text-transform: uppercase !important;
 }

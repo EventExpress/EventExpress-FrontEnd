@@ -8,6 +8,7 @@ import 'react-calendar/dist/Calendar.css';
 import NavBar from '../../components/NavBar';
 import '../../app/globals.css';
 import Footer from '../../components/Footer';
+import PaymentModal from '../../components/PaymentModal';
 
 export default function CreateReserva() {
     const [dataInicio, setDataInicio] = useState(null);
@@ -21,12 +22,20 @@ export default function CreateReserva() {
     const [errorMessage, setErrorMessage] = useState('');
     const [servicosData, setServicosData] = useState({});
     const [token, setToken] = useState(null);
-    const [formapagamento, setFormaPagamento] = useState('select'); 
     const [anuncio, setAnuncio] = useState(null);
     const [locador, setLocador] = useState(null);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
+    const [formapagamento, setFormaPagamento] = useState('select');
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const { anuncioId } = router.query;
+
+    const openModal = () => setIsModalOpen(true);
+    const closeModal = () => setIsModalOpen(false);
+
+    const handleSelectPayment = (paymentMethod) => {
+        setFormaPagamento(paymentMethod);
+    };
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -43,22 +52,17 @@ export default function CreateReserva() {
 
     useEffect(() => {
         if (anuncioId && token) {
-            console.log("Anuncio ID do query:", anuncioId);
             const fetchAnuncio = async () => {
                 try {
                     const response = await axios.get('http://localhost:8000/api/anuncios', {
                         headers: { Authorization: `Bearer ${token}` },
                     });
             
-                    console.log('Dados recebidos:', response.data); // Verificar a estrutura de resposta
-            
-                    const anuncios = response.data.anuncios || []; // Ajuste conforme a estrutura real
-            
+                    const anuncios = response.data.anuncios || [];            
                     const anuncio = anuncios.find((anuncio) => anuncio.id === parseInt(anuncioId));
             
                     if (anuncio) {
-                        console.log("Anúncio encontrado:", anuncio);
-                        setAnuncio(anuncio); // Agora estamos pegando o anúncio específico
+                        setAnuncio(anuncio); 
                     } else {
                         setErrorMessage('Anúncio não encontrado.');
                     }
@@ -81,7 +85,6 @@ export default function CreateReserva() {
                     const response = await axios.get(`http://localhost:8000/api/user/${anuncio.user_id}`, {
                         headers: { Authorization: `Bearer ${token}` },
                     });
-                    console.log('Locador:', response.data);  // Verifique o conteúdo da resposta
                     setLocador(response.data);
                 } catch (error) {
                     console.error('Erro ao buscar dados do locador:', error);
@@ -135,8 +138,8 @@ export default function CreateReserva() {
             return;
         }
 
-        if (!formapagamento) {
-            setErrorMessage('Por favor, selecione uma forma de pagamento.');
+        if (!formapagamento || formapagamento === 'select') {
+            alert('Por favor, selecione uma forma de pagamento.');
             return;
         }
 
@@ -153,8 +156,8 @@ export default function CreateReserva() {
                 data_fim: servicosData[key].dataFim ? format(servicosData[key].dataFim, 'yyyy-MM-dd') + ' ' + servicosData[key].horaFim : null,
             })),
         };
-
         console.log("Dados da reserva:", reservaData);
+        console.log("Serviços selecionados:", servicosIds);
 
         try {
             const response = await axios.post(`http://localhost:8000/api/agendados/${anuncioId}`, reservaData, {
@@ -235,7 +238,6 @@ export default function CreateReserva() {
             !isAfter(date, startOfDay(new Date()))
         );
     };
-    
 
     const generateTimeOptions = (start = '00:00') => {
         const times = [];
@@ -261,140 +263,115 @@ export default function CreateReserva() {
             <div>
                 <NavBar />
                 <div className="py-12">
-                    <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                        <div className="bg-white shadow-sm sm:rounded-lg">
-                            <div className="p-6 bg-white border-b border-gray-200 rounded-lg">
-                                <h2 className="font-semibold text-xl text-gray-900 leading-tight">Reservar Anúncio</h2>
-                                {errorMessage && <p className="text-red-500">{errorMessage}</p>}
-                                {loading ? (
-                                    <p>Carregando informações do anúncio...</p>
-                                ) : anuncio ? (
-                                    <div className="mt-4 flex items-start border-2 border-orange-500 bg-orange-100 p-6 rounded-lg shadow-md">
-                                        {anuncio.imagens && anuncio.imagens.length > 0 && (
-                                            <img
-                                                src={anuncio.imagens[0].image_path}
-                                                alt={anuncio.titulo}
-                                                className="w-2/5 h-auto rounded-lg mb-4"
-                                            />
-                                        )}        
-                                        <div className="ml-6 flex-1">
-                                            <h3 className="text-2xl font-semibold mb-2">{anuncio.titulo}</h3>
-                                            <p className="mb-40">{anuncio.descricao}</p>
-                                            <p className="text-gray-700">Capacidade: {anuncio.capacidade}</p>
-                                            <p className="text-gray-700">Valor: R$ {anuncio.valor}</p>
-                                            
-                                            {locador ? (
-                                                <div className="">
-                                                    <p className="">
-                                                        Locador: {locador.user?.nome || 'Locador não disponível'}
-                                                    </p>
-                                                </div>
-                                            ) : (
-                                                <p>Locador não encontrado</p>
-                                            )}
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <p>Não foi possível carregar os detalhes do anúncio.</p>
-                                )}
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    <div className="bg-white shadow-sm sm:rounded-lg">
+                      <div className="p-6 bg-white border-b border-gray-200 rounded-lg">
+                        <div className="flex justify-between items-center">
+                          <h3 className="text-2xl font-semibold mb-2"> {anuncio ? anuncio.titulo : 'Título não disponível'}</h3>
+                          {locador ? (
+                            <h3 className="mb-2">local disponibilizado por {locador.user?.nome || 'Locador não disponível'}</h3>
+                          ) : (
+                            <p className="text-right text-sm text-gray-600">Locador não encontrado</p>
+                          )}
+                        </div>                  
+                        {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+                        {loading ? (
+                          <p>Carregando informações do anúncio...</p>
+                        ) : anuncio ? (
+                          <div className="mt-4 flex items-start border-2 border-orange-500 bg-orange-100 p-6 rounded-lg shadow-md mb-6">
+                            {anuncio.imagens && anuncio.imagens.length > 0 && (
+                              <img
+                                src={anuncio.imagens[0].image_path}
+                                alt={anuncio.titulo}
+                                className="w-2/5 h-auto rounded-lg mb-4"
+                              />
+                            )}
+                            <div className="ml-6 flex-1">
+                              <p className="mb-52">{anuncio.descricao}</p>
+                              <p><strong>Capacidade:</strong> {anuncio.capacidade} Pessoas</p>
+                              <p><strong>R$:</strong>{anuncio.valor}</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <p>Não foi possível carregar os detalhes do anúncio.</p>
+                        )}
                                 <form onSubmit={handleSubmit}>
                                 <div className="flex space-x-4 mb-4">
-                                    <div className="flex-1 bg-gray-200 p-4 rounded-lg">
-                                        <label className="block text-sm font-medium text-orange-500 mb-2">Data de Início do Anúncio:</label>
-                                        <Calendar
-                                            onChange={handleDataInicioGeneralChange}
-                                            value={dataInicio}
-                                            tileDisabled={({ date }) => isDataIndisponivel(date)}
-                                            locale={ptBR}
-                                            className="custom-calendar"
+                                  <div className="flex-1 bg-gray-200 p-4 rounded-lg shadow-lg border-2 border-orange-500 bg-orange-100">
+                                    <label className="block text-sm font-medium text-black-500 mb-2">Data de Início do Anúncio:</label>
+                                    <div className="flex items-center space-x-4">
+                                      <div className="relative flex-1">
+                                        <Calendar onChange={handleDataInicioGeneralChange}
+                                          value={dataInicio}
+                                          tileDisabled={({ date }) => isDataIndisponivel(date)}
+                                          locale={ptBR} className="custom-calendar"
                                         />
-                                        <label className="block text-sm font-medium text-orange-500 mb-2">Hora de Início:</label>
-                                        <select
-                                            value={horaInicio}
-                                            onChange={handleHoraInicioChange}
-                                            className="w-full p-2 border rounded-lg"
-                                        >
-                                            {timeOptionsInicio.map((option) => (
-                                                <option key={option} value={option}>
-                                                    {option}
-                                                </option>
+                                      </div>
+                                      <div className="w-1/3">
+                                        <label className="block text-sm font-medium text-black-500 mb-2">Hora de Início:</label>
+                                        <div className="relative">
+                                          <select value={horaInicio} onChange={handleHoraInicioChange}
+                                            className="w-full p-3 border rounded-lg bg-white shadow-sm text-lg focus:ring-2 focus:ring-orange-500 border-1 border-orange-500">
+                                            {timeOptionsInicio.map((option) => ( <option key={option} value={option}>
+                                                {option}
+                                              </option>
                                             ))}
-                                        </select>
+                                          </select>
+                                        </div>
+                                      </div>
                                     </div>
-
-                                    <div className="flex-1 bg-gray-200 p-4 rounded-lg">
-                                        <label className="block text-sm font-medium text-orange-500 mb-2">Data de Fim do Anúncio:</label>
-                                        <Calendar
-                                            onChange={handleDataFimGeneralChange}
-                                            value={dataFim}
-                                            tileDisabled={({ date }) => isDataIndisponivel(date)}
-                                            locale={ptBR}
-                                            className="custom-calendar"
-                                        />
-                                        <label className="block text-sm font-medium text-orange-500 mb-2">Hora de Fim:</label>
-                                        <select
-                                            value={horaFim}
-                                            onChange={(e) => setHoraFim(e.target.value)}
-                                            className="w-full p-2 border rounded-lg"
-                                        >
+                                  </div>
+                                  <div className="flex-1 bg-gray-200 p-4 rounded-lg shadow-lg border-2 border-orange-500 bg-orange-100">
+                                    <label className="block text-sm font-medium text-black-500 mb-2">Data de Fim do Anúncio:</label>
+                                    <div className="flex items-center space-x-4">
+                                      <div className="relative flex-1">
+                                        <Calendar onChange={handleDataFimGeneralChange}
+                                          value={dataFim}
+                                          tileDisabled={({ date }) => isDataIndisponivel(date)}
+                                          locale={ptBR} className="custom-calendar"/>
+                                      </div>
+                                      <div className="w-1/3 ">
+                                        <label className="block text-sm font-medium text-black-500 mb-2">Hora de Fim:</label>
+                                        <div className="relative">
+                                          <select value={horaFim} onChange={(e) =>
+                                            setHoraFim(e.target.value)} className="w-full p-3 border rounded-lg bg-white shadow-sm text-lg focus:ring-2 focus:ring-orange-500 border-1 border-orange-500">
                                             {timeOptionsFim.map((option) => (
-                                                <option key={option} value={option}>
-                                                    {option}
-                                                </option>
+                                              <option key={option} value={option}>
+                                                {option}
+                                              </option>
                                             ))}
-                                        </select>
+                                          </select>
+                                        </div>
+                                      </div>
                                     </div>
+                                  </div>
                                 </div>
-
                                 <div className="mb-4">
-                                    <label className="block text-sm font-medium text-orange-500">
-                                        Escolher Serviços:
-                                    </label>
-                                    {servicos.length > 0 ? (
-                                        servicos.map((servico) => (
+                                    <label className="block text-sm font-medium text-orange-500">Escolher Serviços:</label>
+                                    {servicos.length > 0 ? ( servicos.map((servico) => (
                                             <div className="flex items-start mt-2" key={servico.id}>
                                                 <div className="flex items-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        id={`servicos-${servico.id}`}
+                                                    <input type="checkbox" id={`servicos-${servico.id}`}
                                                         value={servico.id}
                                                         onChange={() => handleServicosChange(servico.id)}
-                                                        className="form-checkbox h-4 w-4 text-orange-600"
-                                                    />
-                                                    <label
-                                                        htmlFor={`servicos-${servico.id}`}
-                                                        className="ml-2 block text-sm text-gray-900"
-                                                    >
-                                                        {servico.titulo} - R$ {servico.valor}
-                                                    </label>
+                                                        className="form-checkbox h-4 w-4 text-orange-600"/>
+                                                    <label htmlFor={`servicos-${servico.id}`} className="ml-2 block text-sm text-gray-900">{servico.titulo} - R$ {servico.valor}</label>
                                                 </div>
-
-                                                {}
                                                 {servicosIds.includes(servico.id) && (
                                                     <div className="ml-4 flex items-center">
                                                         <div className="flex flex-col mr-4">
-                                                            <label className="block text-sm font-medium text-orange-500">
-                                                                Data de Início:
-                                                            </label>
-                                                            <Calendar
-                                                                onChange={(date) => handleDataInicioChange(servico.id, date)}
+                                                            <label className="block text-sm font-medium text-orange-500">Data de Início:</label>
+                                                            <Calendar onChange={(date) => handleDataInicioChange(servico.id, date)}
                                                                 value={servicosData[servico.id]?.dataInicio}
                                                                 tileDisabled={({ date }) => isDataIndisponivel(date)}
-                                                                locale={ptBR}
-                                                                className="custom-calendar"
-                                                            />
+                                                                locale={ptBR} className="custom-calendar"/>
                                                         </div>
                                                         <div className="flex flex-col">
-                                                            <label className="block text-sm font-medium text-orange-500">
-                                                                Data de Fim:
-                                                            </label>
-                                                            <Calendar
-                                                                onChange={(date) => handleDataFimChange(servico.id, date)}
+                                                            <label className="block text-sm font-medium text-orange-500">Data de Fim:</label>
+                                                            <Calendar onChange={(date) => handleDataFimChange(servico.id, date)} 
                                                                 value={servicosData[servico.id]?.dataFim}
                                                                 tileDisabled={({ date }) => isDataIndisponivel(date)}
-                                                                locale={ptBR}
-                                                                className="custom-calendar"
-                                                            />
+                                                                locale={ptBR} className="custom-calendar"/>
                                                         </div>
                                                     </div>
                                                 )}
@@ -404,35 +381,19 @@ export default function CreateReserva() {
                                         <p className="text-gray-500">Nenhum serviço disponível.</p>
                                     )}
                                 </div>
-
-                                <div className="mb-4">
-                                <label htmlFor="formapagamento" className="block text-sm font-semibold">Forma de Pagamento</label>
-                                <select
-                                    id="formapagamento"
-                                    value={formapagamento}
-                                    onChange={(e) => setFormaPagamento(e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-md"
-                                >
-                                        <option value="">Selecione uma forma de pagamento</option>
-                                        <option value="pix">Pix</option>
-                                        <option value="boleto">Boleto</option>
-                                        <option value="cartao">Cartão de Débito</option>
-                                        <option value="cartao">Cartão de Crédito</option>
-                                        <option value="transferencia">Transaferência</option>
-                                </select>
-                            </div>
-
-                                <button
-                                    type="submit"
-                                    className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                                >
-                                    Confirmar para pagamento
-                                </button>
+                                <div className="flex items-center mb-4">
+                                    <button type="button" className="p-2 bg-blue-500 text-white rounded-md"onClick={openModal}>Selecionar Forma de Pagamento</button>
+                                    {formapagamento !== 'select' && (
+                                        <p className="ml-4 text-green-500">{formapagamento}</p>
+                                    )}
+                                </div>
+                                <button type="submit" className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Confirmar Reserva</button>
                             </form>
                         </div>
                     </div>
                 </div>
             </div>
+            <PaymentModal isOpen={isModalOpen} onClose={closeModal} onSelectPayment={handleSelectPayment}/>
             <Footer />
         </div>
     );
