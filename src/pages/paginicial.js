@@ -3,23 +3,61 @@ import axios from 'axios';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
 import { useRouter } from 'next/router';
+import { FunnelIcon } from '@heroicons/react/24/outline';
 
 const Paginicial = () => {
   const [anuncios, setAnuncios] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const anunciosPerPage = 8;
   const router = useRouter();
+  const [filterOpen, setFilterOpen] = useState(false); // Para controlar se o filtro está aberto ou fechado
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-
+    
     if (!token) {
       router.push('/login');
       return;
     }
 
+    // Carregar categorias
+    const fetchCategorias = async () => {
+      try {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+        
+        if (!backendUrl) {
+          throw new Error('A URL do backend não está configurada.');
+        }
+        
+        const categoriasResponse = await axios.get(`${backendUrl}/api/categoria`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (categoriasResponse.data && Array.isArray(categoriasResponse.data.categorias)) {
+          setCategorias(categoriasResponse.data.categorias);
+        }
+      } catch (error) {
+        const errorMessage = error.response
+          ? error.response.data.message || 'Erro desconhecido ao buscar categorias.'
+          : 'Erro ao buscar categorias.';
+        setError(errorMessage);
+        console.error('Erro ao buscar categorias:', error);
+      }
+    };
+
+    fetchCategorias();
+  }, [router]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    
     const fetchAnuncios = async () => {
       try {
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -28,7 +66,11 @@ const Paginicial = () => {
           throw new Error('A URL do backend não está configurada.');
         }
 
-        const anunciosResponse = await axios.get(`${backendUrl}/api/anuncios`, {
+        const url = selectedCategory
+          ? `${backendUrl}/api/anuncios/categoria/titulo/${selectedCategory}`
+          : `${backendUrl}/api/anuncios`;
+
+        const anunciosResponse = await axios.get(url, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -38,8 +80,7 @@ const Paginicial = () => {
         if (anunciosResponse.data && Array.isArray(anunciosResponse.data.anuncios)) {
           const anunciosData = anunciosResponse.data.anuncios;
 
-          // Requisição paralela para buscar os locadores
-          const locadoresPromises = anunciosData.map((anuncio) => 
+          const locadoresPromises = anunciosData.map((anuncio) =>
             axios.get(`${backendUrl}/api/user/${anuncio.user_id}`, {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -72,7 +113,7 @@ const Paginicial = () => {
     };
 
     fetchAnuncios();
-  }, [router]);
+  }, [selectedCategory, router]);
 
   const indexOfLastAnuncio = currentPage * anunciosPerPage;
   const indexOfFirstAnuncio = indexOfLastAnuncio - anunciosPerPage;
@@ -88,7 +129,50 @@ const Paginicial = () => {
       <div className="flex-grow py-12 bg-gray-100 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
           <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
-            <h1 className="text-2xl font-semibold mb-4 text-orange-500">Anúncios</h1>
+            <div className="flex justify-between items-center">
+              <h1 className="text-2xl font-semibold mb-4 text-orange-500">Anúncios</h1>
+              <div className="relative">
+                <button
+                  onClick={() => setFilterOpen(!filterOpen)}
+                  className="flex items-center bg-gray-200 p-2 rounded-md"
+                >
+                  <FunnelIcon className="h-5 w-5 text-gray-600" />
+                  <span className="ml-2 text-gray-700">Filtrar por Categoria</span>
+                </button>
+
+                {filterOpen && (
+                  <div className="absolute z-10 bg-white border border-gray-300 rounded-lg shadow-md mt-2 w-48">
+                    {categorias.map((categoria) => (
+                      <div
+                        key={categoria.id}
+                        onClick={() => {
+                          setSelectedCategory(categoria.titulo);
+                          setFilterOpen(false); // Fecha o filtro ao selecionar uma categoria
+                        }}
+                        className="px-4 py-2 text-gray-700 cursor-pointer hover:bg-gray-100"
+                      >
+                        {categoria.titulo}
+                      </div>
+                    ))}
+                    <div
+                      onClick={() => {
+                        setSelectedCategory('');
+                        setFilterOpen(false); // Fecha o filtro ao selecionar 'Todos'
+                      }}
+                      className="px-4 py-2 text-gray-700 cursor-pointer hover:bg-gray-100"
+                    >
+                      Todos
+                    </div>
+                  </div>
+                )}
+
+                {selectedCategory && (
+                  <div className="mt-2 text-sm text-gray-600">
+                    Categoria Selecionada: <strong>{selectedCategory}</strong>
+                  </div>
+                )}
+              </div>
+            </div>
 
             {loading ? (
               <div className="flex justify-center items-center">
@@ -103,7 +187,7 @@ const Paginicial = () => {
                     <div 
                       key={anuncio.id} 
                       className="border rounded-lg p-4 shadow-md cursor-pointer"
-                      onClick={() => handleReservar(anuncio.id)} // Torna o card clicável
+                      onClick={() => handleReservar(anuncio.id)}
                     >
                       <h2 className="text-xl font-bold">{anuncio.titulo || 'Título não disponível'}</h2>
                       <p className="text-gray-700">
@@ -131,7 +215,7 @@ const Paginicial = () => {
                       </p>
                       <button
                         onClick={(e) => {
-                          e.stopPropagation();  // Impede que o clique no botão dispare o evento do card
+                          e.stopPropagation();
                           handleReservar(anuncio.id);
                         }}
                         className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
@@ -151,7 +235,7 @@ const Paginicial = () => {
                   </button>
                   <button
                     onClick={() => setCurrentPage(currentPage + 1)}
-                    disabled={indexOfLastAnuncio >= anuncios.length}
+                    disabled={currentAnuncios.length < anunciosPerPage}
                     className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50"
                   >
                     Próximo
@@ -159,7 +243,7 @@ const Paginicial = () => {
                 </div>
               </div>
             ) : (
-              <p className="text-gray-700 dark:text-gray-300">Não possui nenhum anúncio.</p>
+              <p className="text-gray-500">Nenhum anúncio encontrado.</p>
             )}
           </div>
         </div>
