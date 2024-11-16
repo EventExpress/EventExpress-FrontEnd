@@ -205,7 +205,7 @@ export default function CreateReserva() {
             });
             openReservaSuccessModal();
             setTimeout(() => {
-                router.push('/paginicial');
+                router.push('/agendados/visualizar');
             }, 3000);
         } catch (error) {
             if (error.response) {
@@ -450,7 +450,7 @@ export default function CreateReserva() {
                     <div className="bg-white p-8 rounded-lg shadow-lg max-w-sm w-full transform transition-transform duration-300 ease-in-out scale-95 hover:scale-100">
                       <div className="text-center">
                         <h3 className="text-2xl font-semibold mb-4 text-green-700">Reserva realizada com sucesso!</h3>
-                        <p className="text-sm text-gray-600 mb-6">Sua reserva foi confirmada. Você será redirecionado para a página inicial.</p>
+                        <p className="text-sm text-gray-600 mb-6">Sua reserva foi confirmada. Você será redirecionado para suas reservas.</p>
                         <button onClick={closeReservaSuccessModal}
                           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-medium transition duration-200 ease-in-out">Fechar</button>
                       </div>

@@ -13,6 +13,9 @@ export default function Visualizaragendados() {
     const [searchTerm, setSearchTerm] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const [loading, setLoading] = useState(true);
+    const [successMessage, setSuccessMessage] = useState(''); // Mensagem de sucesso
+    const [errorCancel, setErrorCancel] = useState(''); // Mensagem de erro no cancelamento
+    const { id } = router.query;
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -42,8 +45,13 @@ export default function Visualizaragendados() {
                 console.log('Dados recebidos:', response.data);
 
                 if (response.data.status && Array.isArray(response.data.agendados)) {
-                    setAgendados(response.data.agendados);
-                    fetchAnuncios(response.data.agendados);
+                    const agendadosFuturos = response.data.agendados.filter(agendado => {
+                        const dataInicio = new Date(agendado.data_inicio);
+                        const dataAtual = new Date();
+                        return dataInicio >= dataAtual;
+                    });
+                    setAgendados(agendadosFuturos);
+                    fetchAnuncios(agendadosFuturos);
                 } else {
                     setErrorMessage('Nenhum agendado encontrado.');
                 }
@@ -54,7 +62,6 @@ export default function Visualizaragendados() {
                 setLoading(false);
             }
         };
-
         fetchAgendados();
     }, [token]);
 
@@ -67,7 +74,6 @@ export default function Visualizaragendados() {
                     Authorization: `Bearer ${token}`
                 }
             });
-
             console.log('Anúncios recebidos:', response.data);
             if (response.data.status && Array.isArray(response.data.anuncios)) {
                 setAnuncios(response.data.anuncios);
@@ -99,11 +105,31 @@ export default function Visualizaragendados() {
                     console.error(`Locador não encontrado para o ID ${response.data.id}`);
                     return null;
                 }
-            }).filter(locador => locador !== null);
-    
+            }).filter(locador => locador !== null);   
             setLocadores(locadoresData);
         } catch (error) {
             console.error('Erro ao buscar locadores:', error);
+        }
+    };
+
+    const handleCancel = async (agendado_id) => {
+        try {
+            const response = await axios.delete(`http://localhost:8000/api/agendados/${agendado_id}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            if (response.data.status) {
+                setAgendados(prevAgendados => prevAgendados.filter(agendado => agendado.id !== agendado_id));
+                setSuccessMessage('Agendamento cancelado com sucesso!'); // Mensagem de sucesso
+                setErrorCancel(''); // Limpa a mensagem de erro
+            } else {
+                setErrorCancel('Erro ao cancelar agendado.');
+            }
+        } catch (error) {
+            setSuccessMessage(''); // Limpa a mensagem de sucesso
+            setErrorCancel('Falha ao tentar cancelar reserva, só pode ser cancelado até 3 dias antes da data agendada.');
+            console.error('Falha no cancelamento:', error);
         }
     };
 
@@ -163,7 +189,6 @@ export default function Visualizaragendados() {
                                     const anuncio = anuncios.find(a => a.id === agendado.anuncio_id);
                                     const locador = locadores.find(l => l.id === anuncio?.user_id);
 
-                                    // Aqui você verifica se há serviços e os exibe
                                     const servico = agendado.servicos || [];
 
                                     return (
@@ -197,29 +222,61 @@ export default function Visualizaragendados() {
                                                     <p><span className="font-semibold">Data de Início:</span> {agendado.data_inicio}</p>
                                                     <p><span className="font-semibold">Data do Fim:</span> {agendado.data_fim}</p>
                                                     
-                                                    {/* Exibindo os serviços agendados */}
                                                     {servico.length > 0 ? (
                                                         <div>
-                                                            <p><span className="font-semibold">Serviço:</span> {servico[0]?.titulo || 'Título não disponível'}</p>
-                                                            <p><span className="font-semibold">Valor do Serviço:</span> {servico[0]?.valor || 'Valor não disponível'}</p>
+                                                            <p><span className="font-semibold">Serviços:</span></p>
+                                                            <ul>
+                                                                {servico.map((s, idx) => (
+                                                                    <li key={idx}>{s.nome}</li>
+                                                                ))}
+                                                            </ul>
                                                         </div>
                                                     ) : (
-                                                        <p>Sem serviço incluso</p>
+                                                        <p>Sem serviços adicionais.</p>
                                                     )}
-                                                    
-                                                    <p><span className="font-semibold">Valor Total:</span> {agendado.valor_total || 'Valor não disponível'}</p>
                                                 </div>
+                                            </div>
+
+                                            <div className="mt-4 flex justify-between">
+                                            <button
+    onClick={() => {
+        console.log("Redirecionando para:", `/agendados/edit/${agendado.id}`);
+        router.push(`/agendados/edit?agendadoId=${agendado.id}`);
+    }}
+    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+>
+    Editar Reserva
+</button>
+                                                <button
+                                                    onClick={() => handleCancel(agendado.id)}
+                                                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
+                                                >
+                                                    Cancelar Agendamento
+                                                </button>
+                                                
                                             </div>
                                         </div>
                                     );
                                 })}
                             </div>
                         ) : (
-                            <p className="text-gray-500">Nenhum agendado encontrado.</p>
+                            <p className="text-gray-600">Nenhum agendamento futuro encontrado.</p>
                         )}
                     </div>
                 </div>
             </div>
+
+            {successMessage && (
+                <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-md shadow-md">
+                    {successMessage}
+                </div>
+            )}
+
+            {errorCancel && (
+                <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-md shadow-md">
+                    {errorCancel}
+                </div>
+            )}
         </div>
     );
 }
