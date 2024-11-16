@@ -33,6 +33,15 @@ export default function CreateReserva() {
     const { anuncioId } = router.query;
     const [diasSelecionados, setDiasSelecionados] = useState([]);
     const [servicoAberto, setServicoAberto] = useState(null);
+    const openModal = () => setIsModalOpen(true);
+    const closeModal = () => setIsModalOpen(false);
+    const [isReservaSuccessModalOpen, setIsReservaSuccessModalOpen] = useState(false);
+    const openReservaSuccessModal = () => setIsReservaSuccessModalOpen(true);
+    const closeReservaSuccessModal = () => setIsReservaSuccessModalOpen(false);
+
+    const onClose = () => {
+        setIsModalOpen(false);
+    };
 
     const calcularDias = (inicio, fim) => {
         const dias = [];
@@ -49,10 +58,6 @@ export default function CreateReserva() {
         }
         return dias;
     };
-    
-
-    const openModal = () => setIsModalOpen(true);
-    const closeModal = () => setIsModalOpen(false);
 
     const handleSelectPayment = (paymentMethod) => {
         setFormaPagamento(paymentMethod);
@@ -77,11 +82,9 @@ export default function CreateReserva() {
                 try {
                     const response = await axios.get('http://localhost:8000/api/anuncios', {
                         headers: { Authorization: `Bearer ${token}` },
-                    });
-            
+                    });           
                     const anuncios = response.data.anuncios || [];            
-                    const anuncio = anuncios.find((anuncio) => anuncio.id === parseInt(anuncioId));
-            
+                    const anuncio = anuncios.find((anuncio) => anuncio.id === parseInt(anuncioId));            
                     if (anuncio) {
                         setAnuncio(anuncio); 
                     } else {
@@ -93,8 +96,7 @@ export default function CreateReserva() {
                     setErrorMessage('Erro ao buscar informações do anúncio.');
                     setLoading(false);
                 }
-            };
-            
+            };         
             fetchAnuncio();
         }
     }, [anuncioId, token]);
@@ -117,7 +119,6 @@ export default function CreateReserva() {
 
     useEffect(() => {
         if (!token || !anuncioId) return;
-
         const fetchServicos = async () => {
             try {
                 const response = await axios.get('http://localhost:8000/api/servicos', {
@@ -147,11 +148,9 @@ export default function CreateReserva() {
     }, [anuncioId, token]);
 
     const calcularValorTotal = () => {
-        if (!anuncio || !dataInicio || !dataFim) return 0;
-        
+        if (!anuncio || !dataInicio || !dataFim) return 0;      
         const diasReserva = calcularDias(dataInicio, dataFim).length;
-        let valorTotal = anuncio.valor * diasReserva; 
-    
+        let valorTotal = anuncio.valor * diasReserva;    
         servicos.forEach((servico) => {
             if (servicosIds.includes(servico.id)) {
                 const diasServico = calcularDias(servicosData[servico.id]?.dataInicio, servicosData[servico.id]?.dataFim).length;
@@ -162,8 +161,7 @@ export default function CreateReserva() {
         return valorTotal;
     };
 
-    const valorTotal = calcularValorTotal();
-    
+    const valorTotal = calcularValorTotal();   
 
     useEffect(() => {
         if (dataInicio && dataFim) {
@@ -174,17 +172,14 @@ export default function CreateReserva() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         if (!anuncioId) {
             setErrorMessage('Anúncio não encontrado. Tente novamente.');
             return;
         }
-
         if (!dataInicio || !dataFim || !horaInicio || !horaFim) {
             setErrorMessage('Por favor, preencha todos os campos de data e hora.');
             return;
         }
-
         if (!formapagamento || formapagamento === 'select') {
             alert('Por favor, selecione uma forma de pagamento.');
             return;
@@ -203,15 +198,15 @@ export default function CreateReserva() {
                 data_fim: servicosData[key].dataFim ? format(servicosData[key].dataFim, 'yyyy-MM-dd') + ' ' + servicosData[key].horaFim : null,
             })),
         };
-        console.log("Dados da reserva:", reservaData);
-        console.log("Serviços selecionados:", servicosIds);
 
         try {
             const response = await axios.post(`http://localhost:8000/api/agendados/${anuncioId}`, reservaData, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            console.log("Reserva criada com sucesso:", response.data);
-            router.push('/paginicial');
+            openReservaSuccessModal();
+            setTimeout(() => {
+                router.push('/paginicial');
+            }, 3000);
         } catch (error) {
             if (error.response) {
                 console.error("Erro ao criar reserva:", error.response.data);
@@ -260,11 +255,6 @@ export default function CreateReserva() {
         }
     };
 
-    const handleHoraFimChange = (e) => {
-        const selectedHoraFim = e.target.value;
-        setHoraFim(selectedHoraFim);
-    };
-
     const handleDataInicioGeneralChange = (date) => {
         setDataInicio(date);
         if (dataFim && format(date, 'yyyy-MM-dd') > format(dataFim, 'yyyy-MM-dd')) {
@@ -288,9 +278,7 @@ export default function CreateReserva() {
     };
 
     const generateTimeOptions = (start = '00:00') => {
-        const times = [];
-        let [startHour, startMinutes] = start.split(':').map(Number);
-
+        const times = []; let [startHour, startMinutes] = start.split(':').map(Number);
         for (let hour = startHour; hour <= 23; hour++) {
             for (let minutes = 0; minutes < 60; minutes += 30) {
                 const time = `${String(hour).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
@@ -307,6 +295,12 @@ export default function CreateReserva() {
         ? generateTimeOptions(horaInicio)
         : generateTimeOptions();
 
+    const ReservaSuccessModal = ({ isOpen, onClose }) => {
+        if (!isOpen) return null;
+    }
+    const CreateAgendamento = ({ onClose }) => {
+    }
+
         return (
             <div>
                 <NavBar />
@@ -316,10 +310,8 @@ export default function CreateReserva() {
                       <div className="p-6 bg-white border-b border-gray-200 rounded-lg">
                         <div className="flex justify-between items-center">
                           <h3 className="text-2xl font-semibold mb-2"> {anuncio ? anuncio.titulo : 'Título não disponível'}</h3>
-                          {locador ? (
-                            <h3 className="mb-2">local disponibilizado por {locador.user?.nome || 'Locador não disponível'}</h3>
-                          ) : (
-                            <p className="text-right text-sm text-gray-600">Locador não encontrado</p>
+                          {locador ? ( <h3 className="mb-2">local disponibilizado por {locador.user?.nome || 'Locador não disponível'}</h3>
+                          ) : ( <p className="text-right text-sm text-gray-600">Locador não encontrado</p>
                           )}
                         </div>                  
                         {errorMessage && <p className="text-red-500">{errorMessage}</p>}
@@ -348,17 +340,14 @@ export default function CreateReserva() {
                                         <Calendar onChange={handleDataInicioGeneralChange}
                                           value={dataInicio}
                                           tileDisabled={({ date }) => isDataIndisponivel(date)}
-                                          locale={ptBR} className="custom-calendar"
-                                        />
+                                          locale={ptBR} className="custom-calendar"/>
                                       </div>
                                       <div className="w-1/3">
                                         <label className="block text-sm font-medium text-black-500 mb-2">Hora de Início:</label>
                                         <div className="relative">
                                           <select value={horaInicio} onChange={handleHoraInicioChange}
                                             className="w-full p-3 border rounded-lg bg-white shadow-sm text-lg focus:ring-2 focus:ring-orange-500 border-1 border-orange-500">
-                                            {timeOptionsInicio.map((option) => ( <option key={option} value={option}>
-                                                {option}
-                                              </option>
+                                            {timeOptionsInicio.map((option) => ( <option key={option} value={option}>{option} </option>
                                             ))}
                                           </select>
                                         </div>
@@ -380,9 +369,7 @@ export default function CreateReserva() {
                                           <select value={horaFim} onChange={(e) =>
                                             setHoraFim(e.target.value)} className="w-full p-3 border rounded-lg bg-white shadow-sm text-lg focus:ring-2 focus:ring-orange-500 border-1 border-orange-500">
                                             {timeOptionsFim.map((option) => (
-                                              <option key={option} value={option}>
-                                                {option}
-                                              </option>
+                                              <option key={option} value={option}> {option} </option>
                                             ))}
                                           </select>
                                         </div>
@@ -391,89 +378,64 @@ export default function CreateReserva() {
                                   </div>
                                 </div>
                                 <div className="flex-1 bg-gray-200 p-4 rounded-lg shadow-lg border-2 border-orange-500 bg-orange-50">
-            <label className="block text-lg font-medium text-black-500">Escolher Serviços:</label>
-            {servicos.length > 0 ? (
-                <div className="flex flex-wrap gap-4 mt-4">
-                    {servicos.map((servico) => (
-                        <div className="flex-shrink-0 w-full sm:w-80 md:w-96 bg-white shadow-md rounded-lg p-4 mb-4" key={servico.id}>
-                            {/* Card de Serviço */}
-                            <div className="flex flex-col w-full">
-                                <div className="flex justify-between items-center mb-2">
-                                    <div className="flex items-center">
-                                        {/* Botões de Seleção */}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleServicosChange(servico.id)} // Altera o estado de serviço aberto
-                                            className={`p-2 rounded-lg text-sm font-medium w-full ${
-                                                servicosIds.includes(servico.id)
-                                                    ? "bg-orange-500 text-white"
-                                                    : "bg-gray-200 text-gray-700"
-                                            }`}
-                                        >
-                                            <span className="font-bold">{servico.titulo}</span> {/* Título em negrito */}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Descrição do Serviço */}
-                                {servico.descricao && (
-                                    <div>
-                                        <p className="text-sm text-gray-700 font-semibold mb-1">Descrição:</p>
-                                        <p className="text-sm text-gray-700 mb-2">{servico.descricao}</p>
-                                    </div>
-                                )}
-
-                                {/* Exibição do Valor do Serviço */}
-                                <div className="mt-2 font-bold text-gray-700">
-                                    R$ {servico.valor} {/* Valor em negrito */}
-                                </div>
-
-                                {/* Exibição das datas apenas se o serviço estiver selecionado */}
-                                {servicoAberto === servico.id && ( // Verifica se o serviço é o selecionado
-                                    <div className="mt-2 space-y-4">
-                                        <div className="flex space-x-4">
-                                            <div className="flex flex-col w-full relative z-10"> {/* Ajuste: Adicionei relative e z-10 */}
-                                                <label className="block text-sm font-medium text-orange-500">Data de Início:</label>
-                                                <Calendar 
-                                                    onChange={(date) => handleDataInicioChange(servico.id, date)} 
-                                                    value={servicosData[servico.id]?.dataInicio} 
-                                                    tileDisabled={({ date }) => isDataIndisponivel(date)} 
-                                                    locale={ptBR} 
-                                                    className="custom-calendar border p-2 rounded-md" 
-                                                />
-                                            </div>
-                                            <div className="flex flex-col w-full relative z-10"> {/* Ajuste: Adicionei relative e z-10 */}
-                                                <label className="block text-sm font-medium text-orange-500">Data de Fim:</label>
-                                                <Calendar 
-                                                    onChange={(date) => handleDataFimChange(servico.id, date)} 
-                                                    value={servicosData[servico.id]?.dataFim} 
-                                                    tileDisabled={({ date }) => isDataIndisponivel(date)} 
-                                                    locale={ptBR} 
-                                                    className="custom-calendar border p-2 rounded-md" 
-                                                />
-                                            </div>
+                                <label className="block text-lg font-medium text-black-500">Escolher Serviços:</label>
+                                    {servicos.length > 0 ? (
+                                        <div className="flex flex-wrap gap-4 mt-4">
+                                            {servicos.map((servico) => (
+                                                <div className="flex-shrink-0 w-full sm:w-80 md:w-96 bg-white shadow-md rounded-lg p-4 mb-4" key={servico.id}>
+                                                    <div className="flex flex-col w-full">
+                                                        <div className="flex justify-between items-center mb-2">
+                                                            <div className="flex items-center">
+                                                                <button type="button" onClick={() => handleServicosChange(servico.id)}
+                                                                    className={`p-2 rounded-lg text-sm font-medium w-full ${
+                                                                        servicosIds.includes(servico.id) ? "bg-orange-500 text-white" : "bg-gray-200 text-gray-700"}`}>
+                                                                    <span className="font-bold">{servico.titulo}</span>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        {servico.descricao && (
+                                                            <div>
+                                                                <p className="text-sm text-gray-700 font-semibold mb-1">Descrição:</p>
+                                                                <p className="text-sm text-gray-700 mb-2">{servico.descricao}</p>
+                                                            </div>
+                                                        )}
+                                                        <div className="mt-2 font-bold text-gray-700">
+                                                            R$ {servico.valor}
+                                                        </div>
+                                                        {servicoAberto === servico.id && (
+                                                            <div className="mt-2 space-y-4">
+                                                                <div className="flex space-x-4">
+                                                                    <div className="flex flex-col w-full relative z-10">
+                                                                        <label className="block text-sm font-medium text-orange-500">Data de Início:</label>
+                                                                        <Calendar onChange={(date) => handleDataInicioChange(servico.id, date)} 
+                                                                            value={servicosData[servico.id]?.dataInicio} 
+                                                                            tileDisabled={({ date }) => isDataIndisponivel(date)} locale={ptBR} 
+                                                                            className="custom-calendar border p-2 rounded-md"/>
+                                                                    </div>
+                                                                    <div className="flex flex-col w-full relative z-10">
+                                                                        <label className="block text-sm font-medium text-orange-500">Data de Fim:</label>
+                                                                        <Calendar onChange={(date) => handleDataFimChange(servico.id, date)} 
+                                                                            value={servicosData[servico.id]?.dataFim} 
+                                                                            tileDisabled={({ date }) => isDataIndisponivel(date)} locale={ptBR} 
+                                                                            className="custom-calendar border p-2 rounded-md"/>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                <p className="text-gray-500">Nenhum serviço disponível.</p>
-            )}
-        </div>
-
-
-                                <div className="flex justify-between items-center mt-4">
-                                    <span className="font-bold text-lg">Valor Total:</span>
+                                    ) : (
+                                        <p className="text-gray-500">Nenhum serviço disponível.</p>
+                                    )}
+                                </div>
+                                <div className="flex justify-between items-center mt-4"> <span className="font-bold text-lg">Valor Total:</span>
                                     <span className="font-semibold text-xl text-orange-500">R$ {valorTotal.toFixed(2)}</span>
                                 </div>
                                 <div className="flex items-center mb-4">
                                     <button type="button" className="p-2 bg-blue-500 text-white rounded-md"onClick={openModal}>Selecionar Forma de Pagamento</button>
-                                    {formapagamento !== 'select' && (
-                                        <p className="ml-4 text-green-500">{formapagamento}</p>
-                                    )}
+                                    {formapagamento !== 'select' && ( <p className="ml-4 text-green-500">{formapagamento}</p>)}
                                 </div>
                                 <button type="submit" className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Confirmar Reserva</button>
                             </form>
@@ -482,6 +444,19 @@ export default function CreateReserva() {
                 </div>
             </div>
             <PaymentModal isOpen={isModalOpen} onClose={closeModal} onSelectPayment={handleSelectPayment}/>
+            <ReservaSuccessModal isOpen={isReservaSuccessModalOpen} onClose={closeReservaSuccessModal} />
+            {isReservaSuccessModalOpen && (
+                <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
+                    <div className="bg-white p-8 rounded-lg shadow-lg max-w-sm w-full transform transition-transform duration-300 ease-in-out scale-95 hover:scale-100">
+                      <div className="text-center">
+                        <h3 className="text-2xl font-semibold mb-4 text-green-700">Reserva realizada com sucesso!</h3>
+                        <p className="text-sm text-gray-600 mb-6">Sua reserva foi confirmada. Você será redirecionado para a página inicial.</p>
+                        <button onClick={closeReservaSuccessModal}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-medium transition duration-200 ease-in-out">Fechar</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
             <Footer />
         </div>
     );
