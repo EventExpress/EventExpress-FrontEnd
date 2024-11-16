@@ -32,6 +32,7 @@ export default function CreateReserva() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { anuncioId } = router.query;
     const [diasSelecionados, setDiasSelecionados] = useState([]);
+    const [servicoAberto, setServicoAberto] = useState(null);
 
     const calcularDias = (inicio, fim) => {
         const dias = [];
@@ -223,6 +224,7 @@ export default function CreateReserva() {
     };
 
     const handleServicosChange = (id) => {
+        setServicoAberto((prevServico) => (prevServico === id ? null : id));
         setServicosIds((prev) => {
             const isChecked = prev.includes(id);
             if (isChecked) {
@@ -324,7 +326,7 @@ export default function CreateReserva() {
                         {loading ? (
                           <p>Carregando informações do anúncio...</p>
                         ) : anuncio ? (
-                          <div className="mt-4 flex items-start border-2 border-orange-500 bg-orange-100 p-6 rounded-lg shadow-md mb-6">
+                          <div className="mt-4 flex items-start border-2 border-orange-500 bg-orange-50 p-6 rounded-lg shadow-md mb-6">
                             {anuncio.imagens && anuncio.imagens.length > 0 && (
                               <img src={anuncio.imagens[0].image_path} alt={anuncio.titulo} className="w-2/5 h-auto rounded-lg mb-4"/>
                             )}
@@ -339,7 +341,7 @@ export default function CreateReserva() {
                         )}
                                 <form onSubmit={handleSubmit}>
                                 <div className="flex space-x-4 mb-4">
-                                  <div className="flex-1 bg-gray-200 p-4 rounded-lg shadow-lg border-2 border-orange-500 bg-orange-100">
+                                  <div className="flex-1 bg-gray-200 p-4 rounded-lg shadow-lg border-2 border-orange-500 bg-orange-50">
                                     <label className="block text-sm font-medium text-black-500 mb-2">Data de Início do Anúncio:</label>
                                     <div className="flex items-center space-x-4">
                                       <div className="relative flex-1">
@@ -363,7 +365,7 @@ export default function CreateReserva() {
                                       </div>
                                     </div>
                                   </div>
-                                  <div className="flex-1 bg-gray-200 p-4 rounded-lg shadow-lg border-2 border-orange-500 bg-orange-100">
+                                  <div className="flex-1 bg-gray-200 p-4 rounded-lg shadow-lg border-2 border-orange-500 bg-orange-50">
                                     <label className="block text-sm font-medium text-black-500 mb-2">Data de Fim do Anúncio:</label>
                                     <div className="flex items-center space-x-4">
                                       <div className="relative flex-1">
@@ -388,41 +390,81 @@ export default function CreateReserva() {
                                     </div>
                                   </div>
                                 </div>
-                                <div className="mb-4">
-                                    <label className="block text-sm font-medium text-orange-500">Escolher Serviços:</label>
-                                    {servicos.length > 0 ? ( servicos.map((servico) => (
-                                            <div className="flex items-start mt-2" key={servico.id}>
-                                                <div className="flex items-center">
-                                                    <input type="checkbox" id={`servicos-${servico.id}`}
-                                                        value={servico.id}
-                                                        onChange={() => handleServicosChange(servico.id)}
-                                                        className="form-checkbox h-4 w-4 text-orange-600"/>
-                                                    <label htmlFor={`servicos-${servico.id}`} className="ml-2 block text-sm text-gray-900">{servico.titulo} - R$ {servico.valor}</label>
-                                                </div>
-                                                {servicosIds.includes(servico.id) && (
-                                                    <div className="ml-4 flex items-center">
-                                                        <div className="flex flex-col mr-4">
-                                                            <label className="block text-sm font-medium text-orange-500">Data de Início:</label>
-                                                            <Calendar onChange={(date) => handleDataInicioChange(servico.id, date)}
-                                                                value={servicosData[servico.id]?.dataInicio}
-                                                                tileDisabled={({ date }) => isDataIndisponivel(date)}
-                                                                locale={ptBR} className="custom-calendar"/>
-                                                        </div>
-                                                        <div className="flex flex-col">
-                                                            <label className="block text-sm font-medium text-orange-500">Data de Fim:</label>
-                                                            <Calendar onChange={(date) => handleDataFimChange(servico.id, date)} 
-                                                                value={servicosData[servico.id]?.dataFim}
-                                                                tileDisabled={({ date }) => isDataIndisponivel(date)}
-                                                                locale={ptBR} className="custom-calendar"/>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p className="text-gray-500">Nenhum serviço disponível.</p>
-                                    )}
+                                <div className="flex-1 bg-gray-200 p-4 rounded-lg shadow-lg border-2 border-orange-500 bg-orange-50">
+            <label className="block text-lg font-medium text-black-500">Escolher Serviços:</label>
+            {servicos.length > 0 ? (
+                <div className="flex flex-wrap gap-4 mt-4">
+                    {servicos.map((servico) => (
+                        <div className="flex-shrink-0 w-full sm:w-80 md:w-96 bg-white shadow-md rounded-lg p-4 mb-4" key={servico.id}>
+                            {/* Card de Serviço */}
+                            <div className="flex flex-col w-full">
+                                <div className="flex justify-between items-center mb-2">
+                                    <div className="flex items-center">
+                                        {/* Botões de Seleção */}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleServicosChange(servico.id)} // Altera o estado de serviço aberto
+                                            className={`p-2 rounded-lg text-sm font-medium w-full ${
+                                                servicosIds.includes(servico.id)
+                                                    ? "bg-orange-500 text-white"
+                                                    : "bg-gray-200 text-gray-700"
+                                            }`}
+                                        >
+                                            <span className="font-bold">{servico.titulo}</span> {/* Título em negrito */}
+                                        </button>
+                                    </div>
                                 </div>
+
+                                {/* Descrição do Serviço */}
+                                {servico.descricao && (
+                                    <div>
+                                        <p className="text-sm text-gray-700 font-semibold mb-1">Descrição:</p>
+                                        <p className="text-sm text-gray-700 mb-2">{servico.descricao}</p>
+                                    </div>
+                                )}
+
+                                {/* Exibição do Valor do Serviço */}
+                                <div className="mt-2 font-bold text-gray-700">
+                                    R$ {servico.valor} {/* Valor em negrito */}
+                                </div>
+
+                                {/* Exibição das datas apenas se o serviço estiver selecionado */}
+                                {servicoAberto === servico.id && ( // Verifica se o serviço é o selecionado
+                                    <div className="mt-2 space-y-4">
+                                        <div className="flex space-x-4">
+                                            <div className="flex flex-col w-full relative z-10"> {/* Ajuste: Adicionei relative e z-10 */}
+                                                <label className="block text-sm font-medium text-orange-500">Data de Início:</label>
+                                                <Calendar 
+                                                    onChange={(date) => handleDataInicioChange(servico.id, date)} 
+                                                    value={servicosData[servico.id]?.dataInicio} 
+                                                    tileDisabled={({ date }) => isDataIndisponivel(date)} 
+                                                    locale={ptBR} 
+                                                    className="custom-calendar border p-2 rounded-md" 
+                                                />
+                                            </div>
+                                            <div className="flex flex-col w-full relative z-10"> {/* Ajuste: Adicionei relative e z-10 */}
+                                                <label className="block text-sm font-medium text-orange-500">Data de Fim:</label>
+                                                <Calendar 
+                                                    onChange={(date) => handleDataFimChange(servico.id, date)} 
+                                                    value={servicosData[servico.id]?.dataFim} 
+                                                    tileDisabled={({ date }) => isDataIndisponivel(date)} 
+                                                    locale={ptBR} 
+                                                    className="custom-calendar border p-2 rounded-md" 
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <p className="text-gray-500">Nenhum serviço disponível.</p>
+            )}
+        </div>
+
+
                                 <div className="flex justify-between items-center mt-4">
                                     <span className="font-bold text-lg">Valor Total:</span>
                                     <span className="font-semibold text-xl text-orange-500">R$ {valorTotal.toFixed(2)}</span>

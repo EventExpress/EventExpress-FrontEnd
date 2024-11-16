@@ -102,3 +102,17 @@ button:hover {
 .react-time-picker__input {
   text-transform: uppercase !important;
 }
+
+button {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+button.bg-orange-500 {
+  background-color: #ff6a00; /* Cor laranja para o botão ativo */
+  color: white;
+}
+
+button.bg-gray-200 {
+  background-color: #f3f4f6; /* Cor neutra para o botão inativo */
+  color: #4b5563;
+}
