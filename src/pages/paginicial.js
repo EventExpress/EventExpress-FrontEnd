@@ -14,7 +14,7 @@ const Paginicial = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const anunciosPerPage = 8;
   const router = useRouter();
-  const [filterOpen, setFilterOpen] = useState(false); // Para controlar se o filtro está aberto ou fechado
+  const [filterOpen, setFilterOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -24,7 +24,6 @@ const Paginicial = () => {
       return;
     }
 
-    // Carregar categorias
     const fetchCategorias = async () => {
       try {
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -132,40 +131,28 @@ const Paginicial = () => {
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-semibold mb-4 text-orange-500">Anúncios</h1>
               <div className="relative">
-                <button
-                  onClick={() => setFilterOpen(!filterOpen)}
-                  className="flex items-center bg-gray-200 p-2 rounded-md"
-                >
-                  <FunnelIcon className="h-5 w-5 text-gray-600" />
-                  <span className="ml-2 text-gray-700">Filtrar por Categoria</span>
+                <button onClick={() => setFilterOpen(!filterOpen)} className="flex items-center bg-gray-200 p-2 rounded-md">
+                  <FunnelIcon className="h-5 w-5 text-gray-600" /><span className="ml-2 text-gray-700">Filtrar por Categoria</span>
                 </button>
-
                 {filterOpen && (
                   <div className="absolute z-10 bg-white border border-gray-300 rounded-lg shadow-md mt-2 w-48">
                     {categorias.map((categoria) => (
-                      <div
-                        key={categoria.id}
-                        onClick={() => {
+                      <div key={categoria.id} onClick={() => {
                           setSelectedCategory(categoria.titulo);
-                          setFilterOpen(false); // Fecha o filtro ao selecionar uma categoria
+                          setFilterOpen(false);
                         }}
-                        className="px-4 py-2 text-gray-700 cursor-pointer hover:bg-gray-100"
-                      >
+                        className="px-4 py-2 text-gray-700 cursor-pointer hover:bg-gray-100">
                         {categoria.titulo}
                       </div>
                     ))}
-                    <div
-                      onClick={() => {
+                    <div onClick={() => {
                         setSelectedCategory('');
-                        setFilterOpen(false); // Fecha o filtro ao selecionar 'Todos'
+                        setFilterOpen(false);
                       }}
-                      className="px-4 py-2 text-gray-700 cursor-pointer hover:bg-gray-100"
-                    >
-                      Todos
+                      className="px-4 py-2 text-gray-700 cursor-pointer hover:bg-gray-100">Todos
                     </div>
                   </div>
                 )}
-
                 {selectedCategory && (
                   <div className="mt-2 text-sm text-gray-600">
                     Categoria Selecionada: <strong>{selectedCategory}</strong>
@@ -173,7 +160,6 @@ const Paginicial = () => {
                 )}
               </div>
             </div>
-
             {loading ? (
               <div className="flex justify-center items-center">
                 <p>Carregando anúncios...</p>
@@ -184,62 +170,32 @@ const Paginicial = () => {
               <div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {currentAnuncios.map(anuncio => (
-                    <div 
-                      key={anuncio.id} 
-                      className="border rounded-lg p-4 shadow-md cursor-pointer"
-                      onClick={() => handleReservar(anuncio.id)}
-                    >
+                    <div key={anuncio.id} className="border rounded-lg p-4 shadow-md cursor-pointer" onClick={() => handleReservar(anuncio.id)}>
                       <h2 className="text-xl font-bold">{anuncio.titulo || 'Título não disponível'}</h2>
-                      <p className="text-gray-700">
-                        {anuncio.descricao ? `${anuncio.descricao.slice(0, 50)}${anuncio.descricao.length > 50 ? '...' : ''}` : 'Descrição não disponível'}
-                      </p>
-                      <p className="text-lg font-semibold text-orange-500">
-                        {anuncio.valor ? `R$${anuncio.valor} ` : 'Valor não disponível'}
-                      </p>
+                      <p className="text-gray-700">{anuncio.descricao ? `${anuncio.descricao.slice(0, 50)}${anuncio.descricao.length > 50 ? '...' : ''}` : 'Descrição não disponível'}</p>
+                      <p className="text-lg font-semibold text-orange-500"> {anuncio.valor ? `R$${anuncio.valor} ` : 'Valor não disponível'} </p>
                       {anuncio.imagens && anuncio.imagens.length > 0 ? (
-                        <img
-                          src={anuncio.imagens[0].image_path}
-                          alt={anuncio.titulo}
-                          className="w-full h-32 object-cover mt-2"
+                        <img src={anuncio.imagens[0].image_path} alt={anuncio.titulo} className="w-full h-32 object-cover mt-2"
                           onError={(e) => {
                             e.target.onerror = null;
                             e.target.src = 'https://via.placeholder.com/150';
-                          }}
-                        />
+                          }}/>
                       ) : (
                         <p className="text-gray-500">Imagem não disponível</p>
                       )}
                       <p className="text-gray-600 mt-2">Capacidade: {anuncio.capacidade || 'Capacidade não disponível'}</p>
-                      <p className="text-gray-600 mt-2">
-                        Locador: {anuncio.user && anuncio.user.nome ? anuncio.user.nome : 'Locador não disponível'}
-                      </p>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleReservar(anuncio.id);
+                      <p className="text-gray-600 mt-2">Locador: {anuncio.user && anuncio.user.nome ? anuncio.user.nome : 'Locador não disponível'}</p>
+                      <button onClick={(e) => { e.stopPropagation(); handleReservar(anuncio.id);
                         }}
-                        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                      >
-                        Reservar
-                      </button>
+                        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Reservar</button>
                     </div>
                   ))}
                 </div>
                 <div className="flex justify-between mt-4">
-                  <button
-                    onClick={() => setCurrentPage(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50"
-                  >
-                    Anterior
-                  </button>
-                  <button
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                    disabled={currentAnuncios.length < anunciosPerPage}
-                    className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50"
-                  >
-                    Próximo
-                  </button>
+                  <button onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}
+                    className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50">Anterior</button>
+                  <button onClick={() => setCurrentPage(currentPage + 1)} disabled={currentAnuncios.length < anunciosPerPage}
+                    className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50">Próximo</button>
                 </div>
               </div>
             ) : (
