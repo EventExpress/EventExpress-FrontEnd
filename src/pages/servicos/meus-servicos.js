@@ -1,8 +1,9 @@
 // src/pages/servicos/meus-servicos.js
 import React, { useState, useEffect } from 'react';
-import NavBar from '../../components/NavBar'; // Importa a NavBar
-import Footer from '../../components/Footer'; // Importa o Footer
+import NavBar from '../../components/NavBar';
+import Footer from '../../components/Footer';
 import { useRouter } from 'next/router';
+import axios from 'axios';
 
 const MeusServicos = () => {
     const [servicos, setServicos] = useState([]);
@@ -11,7 +12,7 @@ const MeusServicos = () => {
     const router = useRouter();
 
     useEffect(() => {
-        const fetchUserServicos = async () => {
+        const fetchServicos = async () => {
             setLoading(true);
             setErrors([]);
 
@@ -22,43 +23,17 @@ const MeusServicos = () => {
             }
 
             try {
-                const userResponse = await fetch('http://localhost:8000/api/user', {
-                    method: 'GET',
+                const response = await axios.get('http://localhost:8000/api/servicos/meus', {
                     headers: {
                         Authorization: `Bearer ${token}`,
                         'Content-Type': 'application/json',
                     },
                 });
 
-                if (!userResponse.ok) {
-                    const errorData = await userResponse.json();
-                    setErrors(['Erro ao buscar dados do usuário: ' + (errorData.message || 'Desconhecido')]);
-                    setLoading(false);
-                    return;
-                }
-
-                const userData = await userResponse.json();
-
-                if (userData.tipousu !== 'Prestador') {
-                    setErrors(['Acesso negado. Apenas prestadores podem acessar esta página.']);
-                    setLoading(false);
-                    return;
-                }
-
-                // Busca os serviços criados pelo prestador
-                const response = await fetch('http://localhost:8000/api/servicos/meus-servicos', {
-                    method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    setErrors(errorData.errors || ['Erro ao buscar serviços.']);
+                if (response.status !== 200) {
+                    setErrors(response.data.errors || ['Erro ao buscar serviços.']);
                 } else {
-                    const data = await response.json();
+                    const data = response.data.servicos;
                     setServicos(data);
                     if (data.length === 0) {
                         setErrors(['Nenhum serviço encontrado.']);
@@ -72,13 +47,41 @@ const MeusServicos = () => {
             }
         };
 
-        fetchUserServicos();
+        fetchServicos();
     }, [router]);
 
+    const handleDelete = async (id) => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            router.push('/login');
+            return;
+        }
+
+        try {
+            const response = await axios.delete(`http://localhost:8000/api/servicos/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.status === 200) {
+                setServicos(servicos.filter((servico) => servico.id !== id));
+                alert('Serviço excluído com sucesso!');
+            } else {
+                setErrors(['Erro ao excluir serviço.']);
+            }
+        } catch (error) {
+            console.error('Erro ao excluir serviço:', error);
+            setErrors(['Erro ao excluir serviço.']);
+        }
+    };
+
+
     return (
-        <div className="flex flex-col min-h-screen"> {/* Garante que o footer fique na parte inferior */}
-            <NavBar /> {/* Adiciona a NavBar */}
-            <div className="py-12 flex-grow"> {/* Permite que o conteúdo ocupe o espaço restante */}
+        <div className="flex flex-col min-h-screen">
+            <NavBar />
+            <div className="py-12 flex-grow"> 
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6 text-gray-900 dark:text-gray-100">
@@ -104,13 +107,23 @@ const MeusServicos = () => {
                                                 <div key={servico.id} className="border rounded-lg p-4 bg-white dark:bg-gray-200 shadow-md">
                                                     <h3 className="text-lg font-bold text-orange-500">{servico.nome}</h3>
                                                     <p className="text-gray-700 dark:text-gray-300">{servico.descricao}</p>
-                                                    <p className="text-gray-500">Preço: R$ {servico.preco}</p>
-                                                    <p className="text-gray-500">
-                                                        Data de Disponibilidade: {servico.dataDisponibilidade.dia}
-                                                    </p>
-                                                    <p className="text-gray-500">
-                                                        Horário: {servico.dataDisponibilidade.horarioInicio} - {servico.dataDisponibilidade.horarioFim}
-                                                    </p>
+                                                    <p className="text-gray-500">Preço: R$ {servico.valor}</p>
+                                                    <p className="text-gray-500">Cidade: {servico.cidade}</p>
+                                                    <p className="text-gray-500">Bairro: {servico.bairro}</p>
+
+                                                    {servico.agenda && Array.isArray(JSON.parse(servico.agenda)) ? (
+                                                        <div>
+                                                            <p className="text-gray-500">Datas indisponíveis:</p>
+                                                            <ul className="text-gray-500">
+                                                                {JSON.parse(servico.agenda).map((data, index) => (
+                                                                    <li key={index}>{data}</li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-gray-500">Nenhuma data disponível.</p>
+                                                    )}
+
                                                     <div className="mt-4">
                                                         <a
                                                             href={`/servicos/edit/${servico.id}`}
@@ -118,6 +131,12 @@ const MeusServicos = () => {
                                                         >
                                                             Editar
                                                         </a>
+                                                        <button
+                                                            onClick={() => handleDelete(servico.id)}
+                                                            className="bg-red-700 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg"
+                                                        >
+                                                            Excluir
+                                                        </button>
                                                     </div>
                                                 </div>
                                             ))}
@@ -131,7 +150,7 @@ const MeusServicos = () => {
                     </div>
                 </div>
             </div>
-            <Footer /> {/* Adiciona o Footer */}
+            <Footer />
         </div>
     );
 };

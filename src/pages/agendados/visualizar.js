@@ -10,7 +10,6 @@ export default function Visualizaragendados() {
     const [agendados, setAgendados] = useState([]);
     const [anuncios, setAnuncios] = useState([]);
     const [locadores, setLocadores] = useState([]);
-    const [searchTerm, setSearchTerm] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const [successMessage, setSuccessMessage] = useState(''); // Mensagem de sucesso
@@ -133,28 +132,6 @@ export default function Visualizaragendados() {
         }
     };
 
-    const handleSearch = async (event) => {
-        event.preventDefault();
-        try {
-            const response = await axios.get(`/agendados/show?search=${searchTerm}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
-
-            console.log('Dados de busca:', response.data);
-
-            if (response.data.status && Array.isArray(response.data.agendados)) {
-                setAgendados(response.data.agendados);
-            } else {
-                setErrorMessage('Nenhum agendado encontrado.');
-            }
-        } catch (error) {
-            setErrorMessage('Erro ao buscar agendados.');
-            console.error('Error fetching agendados:', error);
-        }
-    };
-
     return (
         <div className="flex flex-col min-h-screen">
             <NavBar />
@@ -171,20 +148,6 @@ export default function Visualizaragendados() {
                             <p className="text-red-500">{errorMessage}</p>
                         ) : agendados.length > 0 ? (
                             <div>
-                                <form onSubmit={handleSearch} className="mb-4 flex">
-                                    <input
-                                        type="text"
-                                        name="search"
-                                        placeholder="Procurar agendado"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="border rounded-l-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                    />
-                                    <button type="submit" className="ml-3 bg-orange-500 hover:bg-orange-600 text-white px-4 rounded-md">
-                                        Buscar
-                                    </button>
-                                </form>
-
                                 {agendados.map((agendado) => {
                                     const anuncio = anuncios.find(a => a.id === agendado.anuncio_id);
                                     const locador = locadores.find(l => l.id === anuncio?.user_id);
@@ -238,22 +201,21 @@ export default function Visualizaragendados() {
                                             </div>
 
                                             <div className="mt-4 flex justify-between">
-                                            <button
-    onClick={() => {
-        console.log("Redirecionando para:", `/agendados/edit/${agendado.id}`);
-        router.push(`/agendados/edit?agendadoId=${agendado.id}`);
-    }}
-    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
->
-    Editar Reserva
-</button>
+                                                <button
+                                                    onClick={() => {
+                                                        console.log("Redirecionando para:", `/agendados/edit/${agendado.id}`);
+                                                        router.push(`/agendados/edit?agendadoId=${agendado.id}`);
+                                                    }}
+                                                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+                                                >
+                                                    Editar Reserva
+                                                </button>
                                                 <button
                                                     onClick={() => handleCancel(agendado.id)}
                                                     className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
                                                 >
                                                     Cancelar Agendamento
                                                 </button>
-                                                
                                             </div>
                                         </div>
                                     );
@@ -267,13 +229,13 @@ export default function Visualizaragendados() {
             </div>
 
             {successMessage && (
-                <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-md shadow-md">
+                <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg">
                     {successMessage}
                 </div>
             )}
 
             {errorCancel && (
-                <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-md shadow-md">
+                <div className="fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg">
                     {errorCancel}
                 </div>
             )}

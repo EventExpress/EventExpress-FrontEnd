@@ -45,12 +45,10 @@ export default function Visualizaragendados() {
                 });
 
                 if (response.data.status && Array.isArray(response.data.historico_agendados)) {
-                    // Processar os agendados
                     const agendadosPassados = response.data.historico_agendados.filter(agendado => {
-                        const dataFim = new Date(agendado.data_fim); // Usando a data de fim para comparar
-                        const dataInicio = new Date(agendado.data_inicio); // Usando a data de início para comparar
+                        const dataFim = new Date(agendado.data_fim);
+                        const dataInicio = new Date(agendado.data_inicio);
                         const dataAtual = new Date();
-                        // Verifica se o agendamento já passou
                         return dataFim < dataAtual && dataInicio <= dataAtual;
                     });
                     setAgendados(agendadosPassados);
@@ -131,7 +129,7 @@ export default function Visualizaragendados() {
     const handleAvaliar = (agendado_id) => {
         // Lógica para avaliação do agendamento
         console.log('Avaliar agendamento:', agendado_id);
-        router.push(`/agendados/avaliar/${agendado_id}`);
+        router.push(`/agendados/avaliacao?agendadoId=${agendado_id}`);
     };
 
     return (
@@ -182,24 +180,20 @@ export default function Visualizaragendados() {
                                                             <p className="font-semibold">Locador:</p>
                                                             <p>{locador.nome}</p>
                                                             <p>{locador.email}</p>
+                                                            {servico.length > 0 && (
+                                                                <div className="mt-4">
+                                                                    <h3 className="font-semibold text-lg">Serviços adicionais:</h3>
+                                                                    <ul>
+                                                                        {servico.map((serv, idx) => (
+                                                                            <li key={idx}>{serv.nome}</li>
+                                                                        ))}
+                                                                    </ul>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     )}
                                                 </div>
                                             </div>
-
-                                            {/* Exibição dos serviços adicionais logo abaixo das datas */}
-                                            {servico.length > 0 && (
-                                                <div className="mt-4">
-                                                    <h3 className="font-semibold text-lg">Serviços adicionais:</h3>
-                                                    <ul>
-                                                        {servico.map((serv, idx) => (
-                                                            <li key={idx}>{serv.nome}</li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            )}
-
-                                            {/* Botão de avaliação posicionado no canto inferior direito */}
                                             <div className="flex justify-end mt-4">
                                                 <button
                                                     onClick={() => handleAvaliar(agendado.id)}
@@ -213,7 +207,7 @@ export default function Visualizaragendados() {
                                 })}
                             </div>
                         ) : (
-                            <p>Não há agendamentos.</p>
+                            <p className="text-gray-500">Você ainda não tem agendamentos realizados.</p>
                         )}
                     </div>
                 </div>
