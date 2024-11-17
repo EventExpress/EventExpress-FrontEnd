@@ -1,213 +1,269 @@
-// src/pages/servicos/edit.js
-import React, { useState, useEffect } from 'react';
+// src/pages/servicos/edit/[id].js
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import NavBar from '../../components/NavBar'; // Importa a NavBar
+import NavBar from '../../components/NavBar';
+import Footer from '../../components/Footer';
+import axios from 'axios';
 
-const EditServico = () => {
+const EditarServico = () => {
     const router = useRouter();
-    const { id } = router.query; // Obtém o ID do serviço da URL
-    const [formData, setFormData] = useState({
-        nome: '',
-        descricao: '',
-        preco: '',
-        categoriaId: [],
-        dataDisponibilidade: {
-            dia: '',
-            horarioInicio: '',
-            horarioFim: '',
-        },
-    });
+    const { id } = router.query; // Obtém o id do serviço da URL
+    const [servico, setServico] = useState(null);
     const [categorias, setCategorias] = useState([]);
-    const [errors, setErrors] = useState({});
-    const [successMessage, setSuccessMessage] = useState('');
-    const [checkboxOpen, setCheckboxOpen] = useState(false);
+    const [categoriaSelecionada, setCategoriaSelecionada] = useState([]);
+    const [descricao, setDescricao] = useState('');
+    const [valor, setValor] = useState('');
+    const [agenda, setAgenda] = useState([]);
+    const [cidade, setCidade] = useState('');
+    const [bairro, setBairro] = useState('');
+    const [errors, setErrors] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Verifica o tipo de usuário
-        const user = JSON.parse(localStorage.getItem('user')); // Supondo que você armazene o usuário em localStorage
-        if (!user || user.tipo !== 'Prestador') {
-            router.push('/'); // Redireciona se não for Prestador
-        }
-
-        // Busque as categorias da API
-        fetch('http://localhost:8000/api/categorias')
-            .then((response) => response.json())
-            .then((data) => setCategorias(data))
-            .catch((error) => console.error('Erro ao buscar categorias:', error));
-
-        // Busque os dados do serviço para editar
         if (id) {
-            fetch(`http://localhost:8000/api/servico/${id}`)
-                .then((response) => response.json())
-                .then((data) => {
-                    setFormData({
-                        nome: data.nome,
-                        descricao: data.descricao,
-                        preco: data.preco,
-                        categoriaId: data.categoriaId || [],
-                        dataDisponibilidade: {
-                            dia: data.dataDisponibilidade.dia || '',
-                            horarioInicio: data.dataDisponibilidade.horarioInicio || '',
-                            horarioFim: data.dataDisponibilidade.horarioFim || '',
-                        },
-                    });
-                })
-                .catch((error) => console.error('Erro ao buscar serviço:', error));
+            fetchServico();
+            fetchCategorias();
         }
-    }, [id, router]);
+    }, [id]);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-    };
-
-    const handleDataChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ 
-            ...formData, 
-            dataDisponibilidade: { ...formData.dataDisponibilidade, [name]: value } 
-        });
-    };
-
-    const handleCheckboxChange = (id) => {
-        setFormData((prevState) => {
-            const isChecked = prevState.categoriaId.includes(id);
-            return {
-                ...prevState,
-                categoriaId: isChecked
-                    ? prevState.categoriaId.filter((catId) => catId !== id)
-                    : [...prevState.categoriaId, id],
-            };
-        });
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setErrors({});
-        setSuccessMessage('');
-
-        const formDataToSend = {
-            ...formData,
-        };
+    // Função para buscar os dados do serviço pelo id
+    const fetchServico = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            router.push('/login');
+            return;
+        }
 
         try {
-            const response = await fetch(`http://localhost:8000/api/servico/${id}`, {
-                method: 'PUT',
+            const response = await axios.get(`http://localhost:8000/api/servicos/${id}`, {
                 headers: {
+                    Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
-                body: JSON.stringify(formDataToSend),
             });
 
-            if (response.ok) {
-                setSuccessMessage('Serviço editado com sucesso!');
-                router.push('/servicos');
-            } else {
-                const errorData = await response.json();
-                setErrors(errorData.errors || {});
+            if (response.status === 200) {
+                const data = response.data.servico;
+                setServico(data);
+                setDescricao(data.descricao);
+                setValor(data.valor);
+                setCidade(data.cidade);
+                setBairro(data.bairro);
+                setAgenda(JSON.parse(data.agenda));
+                setCategoriaSelecionada(data.scategoriaId || []);
             }
         } catch (error) {
-            console.error('Erro ao enviar formulário:', error);
+            console.error('Erro ao buscar serviço:', error);
+            setErrors(['Erro ao buscar serviço.']);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const toggleCheckboxes = () => {
-        setCheckboxOpen(!checkboxOpen);
+    // Função para buscar as categorias
+    const fetchCategorias = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            router.push('/login');
+            return;
+        }
+
+        try {
+            const response = await axios.get('http://localhost:8000/api/categoria/servico', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.status === 200) {
+                setCategorias(response.data.Scategorias);
+            }
+        } catch (error) {
+            console.error('Erro ao buscar categorias:', error);
+        }
     };
 
+    const handleCheckboxChange = (categoriaId) => {
+        setCategoriaSelecionada((prevData) => {
+            const categoriaIdExists = prevData.includes(categoriaId);
+            const updatedCategoriaId = categoriaIdExists
+                ? prevData.filter((id) => id !== categoriaId)
+                : [...prevData, categoriaId];
+            return updatedCategoriaId;
+        });
+    };
+
+    // Função para editar o serviço
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+            router.push('/login');
+            return;
+        }
+
+        try {
+            const response = await axios.put(`http://localhost:8000/api/servicos/${id}`, 
+                {
+                    cidade,
+                    bairro,
+                    descricao,
+                    valor,
+                    agenda,
+                    scategoriaId: categoriaSelecionada,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            if (response.status === 200) {
+                alert('Serviço atualizado com sucesso!');
+                router.push('/servicos/meus-servicos');
+            }
+        } catch (error) {
+            console.error('Erro ao editar serviço:', error);
+            setErrors(['Erro ao editar serviço.']);
+        }
+    };
+
+    if (loading) return <p>Carregando...</p>;
+
     return (
-        <div>
+        <div className="flex flex-col min-h-screen">
             <NavBar />
-            <div className="py-12">
+            <div className="py-12 flex-grow">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6 bg-white border-b border-gray-200 rounded-lg">
-                            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Editar Serviço</h2>
-                            {successMessage && <p className="text-green-500">{successMessage}</p>}
+                    <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                        <div className="p-6 text-gray-900 dark:text-gray-100">
+                            <h1 className="text-2xl font-semibold mb-4 text-orange-500">Editar Serviço</h1>
+
+                            {errors.length > 0 && (
+                                <div className="alert alert-danger mb-4">
+                                    <ul>
+                                        {errors.map((error, index) => (
+                                            <li key={index}>{error}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
                             <form onSubmit={handleSubmit}>
                                 <div className="mb-4">
-                                    <label htmlFor="nome" className="block text-sm font-medium text-orange-500">Nome:</label>
+                                    <label htmlFor="cidade" className="block text-sm font-medium text-orange-500">Cidade:</label>
                                     <input
                                         type="text"
-                                        name="nome"
-                                        id="nome"
-                                        value={formData.nome}
-                                        onChange={handleChange}
+                                        name="cidade"
+                                        id="cidade"
+                                        value={cidade}
+                                        onChange={(e) => setCidade(e.target.value)}
                                         required
                                         className="form-input mt-1 block w-full rounded-lg"
                                     />
                                 </div>
+
+                                <div className="mb-4">
+                                    <label htmlFor="bairro" className="block text-sm font-medium text-orange-500">Bairro:</label>
+                                    <input
+                                        type="text"
+                                        name="bairro"
+                                        id="bairro"
+                                        value={bairro}
+                                        onChange={(e) => setBairro(e.target.value)}
+                                        required
+                                        className="form-input mt-1 block w-full rounded-lg"
+                                    />
+                                </div>
+
                                 <div className="mb-4">
                                     <label htmlFor="descricao" className="block text-sm font-medium text-orange-500">Descrição:</label>
                                     <input
                                         type="text"
                                         name="descricao"
                                         id="descricao"
-                                        value={formData.descricao}
-                                        onChange={handleChange}
+                                        value={descricao}
+                                        onChange={(e) => setDescricao(e.target.value)}
                                         required
                                         className="form-input mt-1 block w-full rounded-lg"
                                     />
                                 </div>
+
                                 <div className="mb-4">
-                                    <label htmlFor="preco" className="block text-sm font-medium text-orange-500">Preço:</label>
+                                    <label htmlFor="valor" className="block text-sm font-medium text-orange-500">Valor:</label>
                                     <input
-                                        type="text"
-                                        name="preco"
-                                        id="preco"
-                                        value={formData.preco}
-                                        onChange={handleChange}
+                                        type="number"
+                                        name="valor"
+                                        id="valor"
+                                        value={valor}
+                                        onChange={(e) => setValor(e.target.value)}
                                         required
                                         className="form-input mt-1 block w-full rounded-lg"
                                     />
                                 </div>
+
                                 <div className="mb-4">
-                                    <label htmlFor="dia" className="block text-sm font-medium text-orange-500">Data de Disponibilidade:</label>
-                                    <input
-                                        type="date"
-                                        name="dia"
-                                        id="dia"
-                                        value={formData.dataDisponibilidade.dia}
-                                        onChange={handleDataChange}
-                                        required
-                                        className="form-input mt-1 block w-full rounded-lg"
-                                    />
+                                    <label htmlFor="agenda" className="block text-sm font-medium text-orange-500">Datas Indisponíveis:</label>
+                                    <div className="flex space-x-4">
+                                        <input
+                                            type="date"
+                                            value={agenda.selectedDate}
+                                            onChange={(e) => setAgenda([...agenda, e.target.value])}
+                                            className="form-input mt-1 block w-full rounded-lg"
+                                        />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-orange-500 mt-4">Datas Indisponíveis:</h3>
+                                        {agenda.map((date, index) => (
+                                            <div key={index} className="flex items-center justify-between">
+                                                <span>{date}</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setAgenda(agenda.filter((item) => item !== date))}
+                                                    className="text-red-500"
+                                                >
+                                                    Remover
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
+
                                 <div className="mb-4">
-                                    <label htmlFor="horarioInicio" className="block text-sm font-medium text-orange-500">Horário de Início:</label>
-                                    <input
-                                        type="time"
-                                        name="horarioInicio"
-                                        id="horarioInicio"
-                                        value={formData.dataDisponibilidade.horarioInicio}
-                                        onChange={handleDataChange}
-                                        required
-                                        className="form-input mt-1 block w-full rounded-lg"
-                                    />
+                                    <label className="text-orange-500">Categorias:</label>
+                                    <div>
+                                        {categorias.map((categoria) => (
+                                            <div key={categoria.id} className="flex items-center space-x-2 mb-3">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={categoriaSelecionada.includes(categoria.id)}
+                                                    onChange={() => handleCheckboxChange(categoria.id)}
+                                                    className="rounded border-gray-300 text-orange-500 focus:ring-2 focus:ring-orange-500"
+                                                />
+                                                <label className="text-black">{categoria.titulo}</label>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                                <div className="mb-4">
-                                    <label htmlFor="horarioFim" className="block text-sm font-medium text-orange-500">Horário de Fim:</label>
-                                    <input
-                                        type="time"
-                                        name="horarioFim"
-                                        id="horarioFim"
-                                        value={formData.dataDisponibilidade.horarioFim}
-                                        onChange={handleDataChange}
-                                        required
-                                        className="form-input mt-1 block w-full rounded-lg"
-                                    />
-                                </div>
-                                <div>
-                                    <button type="submit" className="bg-gray-700 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Salvar</button>
-                                </div>
+
+                                <button
+                                    type="submit"
+                                    className="mt-4 bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-md"
+                                >
+                                    Atualizar Serviço
+                                </button>
                             </form>
                         </div>
                     </div>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 };
 
-export default EditServico;
+export default EditarServico;

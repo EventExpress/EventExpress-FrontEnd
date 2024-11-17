@@ -4,6 +4,7 @@ import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
 import { useRouter } from 'next/router';
 import { FunnelIcon } from '@heroicons/react/24/outline';
+import { StarIcon } from '@heroicons/react/24/solid'; // Adicionando o ícone de estrela
 
 const Paginicial = () => {
   const [anuncios, setAnuncios] = useState([]);
@@ -56,46 +57,48 @@ const Paginicial = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    
+  
     const fetchAnuncios = async () => {
       try {
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-
+  
         if (!backendUrl) {
           throw new Error('A URL do backend não está configurada.');
         }
-
+  
         const url = selectedCategory
           ? `${backendUrl}/api/anuncios/categoria/titulo/${selectedCategory}`
           : `${backendUrl}/api/anuncios`;
-
+  
         const anunciosResponse = await axios.get(url, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         });
-
+  
         if (anunciosResponse.data && Array.isArray(anunciosResponse.data.anuncios)) {
           const anunciosData = anunciosResponse.data.anuncios;
-
-          const locadoresPromises = anunciosData.map((anuncio) =>
-            axios.get(`${backendUrl}/api/user/${anuncio.user_id}`, {
+  
+          // Buscar as médias de avaliações para cada anúncio
+          const mediasAvaliacoesPromises = anunciosData.map((anuncio) =>
+            axios.get(`${backendUrl}/api/anuncios/${anuncio.id}/avaliacoes`, {
               headers: {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json',
               },
             })
           );
-
-          const locadoresResponse = await Promise.all(locadoresPromises);
-
-          const anunciosComLocadores = anunciosData.map((anuncio, index) => ({
+  
+          const mediasAvaliacoesResponse = await Promise.all(mediasAvaliacoesPromises);
+  
+          // Associar as médias de avaliações aos anúncios
+          const anunciosComMedias = anunciosData.map((anuncio, index) => ({
             ...anuncio,
-            user: locadoresResponse[index].data.user,
+            media_avaliacoes: mediasAvaliacoesResponse[index].data.media_avaliacoes,
           }));
-
-          setAnuncios(anunciosComLocadores);
+  
+          setAnuncios(anunciosComMedias);
         } else {
           setAnuncios([]);
           console.log('Nenhum anúncio encontrado ou estrutura inesperada.');
@@ -110,9 +113,10 @@ const Paginicial = () => {
         setLoading(false);
       }
     };
-
+  
     fetchAnuncios();
   }, [selectedCategory, router]);
+  
 
   const indexOfLastAnuncio = currentPage * anunciosPerPage;
   const indexOfFirstAnuncio = indexOfLastAnuncio - anunciosPerPage;
@@ -121,6 +125,20 @@ const Paginicial = () => {
   const handleReservar = (anuncioId) => {
     router.push(`/agendados/create?anuncioId=${anuncioId}`);
   };
+
+  const renderStars = (media) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <StarIcon
+          key={i}
+          className={`h-5 w-5 ${i <= media ? 'text-yellow-500' : 'text-gray-300'}`}
+        />
+      );
+    }
+    return stars;
+  };
+  
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -174,6 +192,12 @@ const Paginicial = () => {
                       <h2 className="text-xl font-bold">{anuncio.titulo || 'Título não disponível'}</h2>
                       <p className="text-gray-700">{anuncio.descricao ? `${anuncio.descricao.slice(0, 50)}${anuncio.descricao.length > 50 ? '...' : ''}` : 'Descrição não disponível'}</p>
                       <p className="text-lg font-semibold text-orange-500"> {anuncio.valor ? `R$${anuncio.valor} ` : 'Valor não disponível'} </p>
+                    
+                        {/* Média de Avaliações com Estrelas */}
+                        <div className="flex items-center">
+                          {renderStars(anuncio.media_avaliacoes)}
+                        </div>
+
                       {anuncio.imagens && anuncio.imagens.length > 0 ? (
                         <img src={anuncio.imagens[0].image_path} alt={anuncio.titulo} className="w-full h-32 object-cover mt-2"
                           onError={(e) => {
@@ -184,22 +208,20 @@ const Paginicial = () => {
                         <p className="text-gray-500">Imagem não disponível</p>
                       )}
                       <p className="text-gray-600 mt-2">Capacidade: {anuncio.capacidade || 'Capacidade não disponível'}</p>
-                      <p className="text-gray-600 mt-2">Locador: {anuncio.user && anuncio.user.nome ? anuncio.user.nome : 'Locador não disponível'}</p>
-                      <button onClick={(e) => { e.stopPropagation(); handleReservar(anuncio.id);
-                        }}
-                        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Reservar</button>
                     </div>
                   ))}
                 </div>
-                <div className="flex justify-between mt-4">
-                  <button onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}
-                    className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50">Anterior</button>
-                  <button onClick={() => setCurrentPage(currentPage + 1)} disabled={currentAnuncios.length < anunciosPerPage}
-                    className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50">Próximo</button>
+                <div className="flex justify-center mt-6">
+                  <button onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1} className="px-4 py-2 text-white bg-blue-500 rounded-md">
+                    Anterior
+                  </button>
+                  <button onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage * anunciosPerPage >= anuncios.length} className="ml-4 px-4 py-2 text-white bg-blue-500 rounded-md">
+                    Próxima
+                  </button>
                 </div>
               </div>
             ) : (
-              <p className="text-gray-500">Nenhum anúncio encontrado.</p>
+              <p>Não há anúncios para exibir.</p>
             )}
           </div>
         </div>
