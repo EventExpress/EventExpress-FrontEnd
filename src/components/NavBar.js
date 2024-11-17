@@ -45,7 +45,9 @@ const NavBar = () => {
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         if (searchQuery.trim()) {
-            router.push(`/anuncios/search?query=${encodeURIComponent(searchQuery)}`);
+            // Redireciona para a página de anúncios com o parâmetro de busca
+            router.push(`/anuncios?search=${encodeURIComponent(searchQuery.trim())}`);
+
         }
     };
 

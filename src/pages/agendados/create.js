@@ -118,34 +118,27 @@ export default function CreateReserva() {
     }, [anuncio, token]);
 
     useEffect(() => {
-        if (!token || !anuncioId) return;
         const fetchServicos = async () => {
-            try {
-                const response = await axios.get('http://localhost:8000/api/servicos', {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                setServicos(Array.isArray(response.data.servicos) ? response.data.servicos : []);
-            } catch (error) {
-                console.error('Erro ao buscar serviços:', error);
-                setErrorMessage('Erro ao buscar serviços. Tente novamente mais tarde.');
+          try {
+            const response = await axios.get(`http://localhost:8000/api/servicos/cidade/${anuncioId}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            if (Array.isArray(response.data)) {
+              setServicos(response.data);
+            } else {
+              setServicos([]);
             }
+          } catch (error) {
+            console.error('Erro ao buscar serviços:', error);
+            setErrorMessage('Erro ao buscar serviços. Tente novamente mais tarde.');
+          }
         };
-
-        const fetchDatasIndisponiveis = async () => {
-            try {
-                const response = await axios.get(`http://localhost:8000/api/verifica-agenda/${anuncioId}`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                setDatasIndisponiveis(response.data.datasIndisponiveis || []);
-            } catch (error) {
-                console.error('Erro ao buscar datas indisponíveis:', error);
-                setErrorMessage('Erro ao buscar datas indisponíveis. Tente novamente mais tarde.');
-            }
-        };
-
-        fetchServicos();
-        fetchDatasIndisponiveis();
-    }, [anuncioId, token]);
+    
+        if (anuncioId && token) {
+          fetchServicos();
+        }
+      }, [anuncioId, token]);
+      
 
     const calcularValorTotal = () => {
         if (!anuncio || !dataInicio || !dataFim) return 0;      
