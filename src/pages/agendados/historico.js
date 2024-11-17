@@ -125,12 +125,10 @@ export default function Visualizaragendados() {
             console.error('Erro ao buscar locadores:', error);
         }
     };
-
     const handleAvaliar = (agendado_id) => {
-        // Lógica para avaliação do agendamento
-        console.log('Avaliar agendamento:', agendado_id);
-        router.push(`/agendados/avaliacao?agendadoId=${agendado_id}`);
+        router.push(`/avaliacao?agendadoId=${agendado_id}&tipoUsuario=Locatario`);
     };
+    
 
     return (
         <div className="flex flex-col min-h-screen">

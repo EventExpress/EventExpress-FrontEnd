@@ -4,7 +4,7 @@ import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
 import { useRouter } from 'next/router';
 import { FunnelIcon } from '@heroicons/react/24/outline';
-import { StarIcon } from '@heroicons/react/24/solid'; // Adicionando o ícone de estrela
+import { StarIcon } from '@heroicons/react/24/solid';
 
 const Paginicial = () => {
   const [anuncios, setAnuncios] = useState([]);
@@ -80,7 +80,6 @@ const Paginicial = () => {
         if (anunciosResponse.data && Array.isArray(anunciosResponse.data.anuncios)) {
           const anunciosData = anunciosResponse.data.anuncios;
   
-          // Buscar as médias de avaliações para cada anúncio
           const mediasAvaliacoesPromises = anunciosData.map((anuncio) =>
             axios.get(`${backendUrl}/api/anuncios/${anuncio.id}/avaliacoes`, {
               headers: {
@@ -92,7 +91,6 @@ const Paginicial = () => {
   
           const mediasAvaliacoesResponse = await Promise.all(mediasAvaliacoesPromises);
   
-          // Associar as médias de avaliações aos anúncios
           const anunciosComMedias = anunciosData.map((anuncio, index) => ({
             ...anuncio,
             media_avaliacoes: mediasAvaliacoesResponse[index].data.media_avaliacoes,
@@ -193,7 +191,6 @@ const Paginicial = () => {
                       <p className="text-gray-700">{anuncio.descricao ? `${anuncio.descricao.slice(0, 50)}${anuncio.descricao.length > 50 ? '...' : ''}` : 'Descrição não disponível'}</p>
                       <p className="text-lg font-semibold text-orange-500"> {anuncio.valor ? `R$${anuncio.valor} ` : 'Valor não disponível'} </p>
                     
-                        {/* Média de Avaliações com Estrelas */}
                         <div className="flex items-center">
                           {renderStars(anuncio.media_avaliacoes)}
                         </div>
