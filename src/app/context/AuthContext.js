@@ -12,6 +12,7 @@ export const AuthProvider = ({ children }) => {
   const [userType, setUserType] = useState('Locatário');
   const router = useRouter();
 
+  // Recupera o tipo de usuário armazenado no localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedUserType = localStorage.getItem('userType');
@@ -29,7 +30,7 @@ export const AuthProvider = ({ children }) => {
     return null;
   };
 
-  // Função para verificar se o token existe e é válido
+  // Função para buscar o perfil do usuário, anúncios e serviços
   const fetchUserAnunciosAndServicos = async () => {
     const token = getAuthToken();
     if (!token) {
@@ -53,7 +54,7 @@ export const AuthProvider = ({ children }) => {
       setServicos(servicosResponse.data.servicos);
     } catch (error) {
       if (error.response && error.response.status === 401) {
-        // Token expirado ou inválido, faça logout e redirecione para o login
+        // Token expirado ou inválido
         console.error('Token expirado ou inválido. Redirecionando para login...');
         localStorage.removeItem('token');
         router.push('/login');
@@ -65,23 +66,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Chama a função de fetch assim que o componente é montado
   useEffect(() => {
     fetchUserAnunciosAndServicos();
   }, []);
 
+  // Atualiza o tipo de usuário no localStorage
   useEffect(() => {
     if (userType && typeof window !== 'undefined') {
       localStorage.setItem('userType', userType);
     }
   }, [userType]);
 
+  // Função de login
   const login = async (email, password) => {
     setLoading(true);
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`, { email, password });
-      localStorage.setItem('token', response.data.token);  // Armazena o token no localStorage
-      await fetchUserAnunciosAndServicos(); // Atualiza dados após o login
-      router.replace('/');  // Redireciona para a página inicial
+      localStorage.setItem('token', response.data.token); // Armazena o token no localStorage
+      await fetchUserAnunciosAndServicos(); // Atualiza dados após login
+      router.replace('/'); // Redireciona para a página inicial
     } catch (error) {
       console.error('Erro ao fazer login:', error);
       throw error;
@@ -90,6 +94,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Função de logout
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
@@ -99,6 +104,7 @@ export const AuthProvider = ({ children }) => {
     router.push('/login');
   };
 
+  // Função para mudar o tipo de usuário
   const handleUserTypeChange = (newUserType) => {
     setUserType(newUserType);
   };
@@ -112,4 +118,5 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+// Hook personalizado para acessar o contexto de autenticação
 export const useAuth = () => useContext(AuthContext);

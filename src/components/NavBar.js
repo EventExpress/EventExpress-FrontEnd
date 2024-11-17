@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import ApplicationLogo from './ApplicationLogo';
@@ -12,6 +12,10 @@ const NavBar = () => {
     const [userType, setUserType] = useState('Locatário');
     const [userTypeDropdown, setUserTypeDropdown] = useState(false);
 
+    const dropdownRef = useRef(null);
+    const buttonRef = useRef(null);
+    const userTypeButtonRef = useRef(null);
+
     // Atualiza o tipo de usuário e opções da NavBar ao logar/deslogar
     useEffect(() => {
         const storedUserType = localStorage.getItem('userType');
@@ -22,11 +26,16 @@ const NavBar = () => {
         }
     }, [user]);  // Monitorando a mudança no estado 'user'
 
-    // Fecha dropdowns ao clicar fora
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if ((dropdownOpen || userTypeDropdown) && !event.target.closest('.dropdown')) {
+            // Fechar dropdown principal de usuário se clicar fora
+            if (dropdownOpen && buttonRef.current && dropdownRef.current && 
+                !buttonRef.current.contains(event.target) && !dropdownRef.current.contains(event.target)) {
                 setDropdownOpen(false);
+            }
+            // Fechar dropdown do tipo de usuário se clicar fora
+            if (userTypeDropdown && userTypeButtonRef.current && dropdownRef.current &&
+                !userTypeButtonRef.current.contains(event.target) && !dropdownRef.current.contains(event.target)) {
                 setUserTypeDropdown(false);
             }
         };
@@ -47,7 +56,6 @@ const NavBar = () => {
         if (searchQuery.trim()) {
             // Redireciona para a página de anúncios com o parâmetro de busca
             router.push(`/anuncios?search=${encodeURIComponent(searchQuery.trim())}`);
-
         }
     };
 
@@ -98,6 +106,7 @@ const NavBar = () => {
                         ) : user ? (
                             <div className="relative dropdown">
                                 <button
+                                    ref={buttonRef}  // Referência para o botão de dropdown
                                     onClick={toggleDropdown}
                                     className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-orange-400 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
                                 >
@@ -105,7 +114,7 @@ const NavBar = () => {
                                 </button>
 
                                 {dropdownOpen && (
-                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+                                    <div ref={dropdownRef} className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
                                         <div className="py-1">
                                             <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                 Meu Perfil
@@ -114,9 +123,14 @@ const NavBar = () => {
                                                 Relatórios
                                             </Link>
                                             {userType === 'Locatário' && (
-                                                <Link href="/agendados/visualizar" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                                    Minhas Reservas
-                                                </Link>
+                                                <>
+                                                    <Link href="/agendados/visualizar" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                        Minhas Reservas
+                                                    </Link>
+                                                    <Link href="/agendados/historico" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                        Histórico
+                                                    </Link>
+                                                </>
                                             )}
                                             {userType === 'Locador' && (
                                                 <>
@@ -147,34 +161,38 @@ const NavBar = () => {
                                         </div>
                                     </div>
                                 )}
-
-                                <div className="relative inline-block ml-3">
-                                    <button
-                                        onClick={toggleUserTypeDropdown}
-                                        className="px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 rounded-md focus:outline-none"
-                                    >
-                                        {userType}
-                                    </button>
-
-                                    {userTypeDropdown && (
-                                        <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-10">
-                                            {['Locatário', 'Locador', 'Prestador'].map((type) => (
-                                                <button
-                                                    key={type}
-                                                    onClick={() => handleUserTypeChange(type)}
-                                                    className={`block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 ${userType === type ? 'font-semibold text-orange-500 bg-white' : 'bg-white'}`}
-                                                >
-                                                    {type}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
                             </div>
                         ) : (
                             <div className="flex space-x-4">
                                 <Link href="/login" className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-md text-sm font-medium">Login</Link>
                                 <Link href="/register" className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-md text-sm font-medium">Registrar</Link>
+                            </div>
+                        )}
+
+                        {/* Mostrar o tipo de usuário somente quando o usuário estiver logado */}
+                        {user && (
+                            <div className="relative inline-block ml-3">
+                                <button
+                                    ref={userTypeButtonRef}  // Referência para o botão de dropdown do tipo de usuário
+                                    onClick={toggleUserTypeDropdown}
+                                    className="px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 rounded-md focus:outline-none"
+                                >
+                                    {userType}
+                                </button>
+
+                                {userTypeDropdown && (
+                                    <div ref={dropdownRef} className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-10">
+                                        {['Locatário', 'Locador', 'Prestador'].map((type) => (
+                                            <button
+                                                key={type}
+                                                onClick={() => handleUserTypeChange(type)}
+                                                className={`block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 ${userType === type ? 'font-semibold text-orange-500 bg-white' : 'bg-white'}`}
+                                            >
+                                                {type}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>

@@ -1,39 +1,107 @@
-// src/pages/servicos/criar.js
-
-import NavBar from '../../components/NavBar'; // ajuste o caminho conforme necessário
-import { useState } from 'react';
+import NavBar from '../../components/NavBar';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useRouter } from 'next/router'; // Importe o useRouter
 
 const CriarServico = () => {
-    const [titulo, setTitulo] = useState('');
+    const router = useRouter(); // Instancie o router
+    const [categorias, setCategorias] = useState([]);
+    const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
     const [descricao, setDescricao] = useState('');
     const [valor, setValor] = useState('');
-    const [dataDisponibilidade, setDataDisponibilidade] = useState({
-        dia: '',
-        horarioInicio: '',
-        horarioFim: '',
-    });
+    const [agenda, setAgenda] = useState([]); 
+    const [cidade, setCidade] = useState('');
+    const [bairro, setBairro] = useState('');
+    const [scategoriaId, setScategoriaId] = useState([]);
+    const [selectedDate, setSelectedDate] = useState(''); // Adicionado para controlar a data selecionada
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        const response = await fetch('http://localhost:8000/api/servicos/create', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({ 
-                titulo, 
-                descricao, 
-                valor,
-                dataDisponibilidade 
-            }),
-        });
+    const fetchCategorias = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error('Token não encontrado!');
+                return;
+            }
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/categoria/servico`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
 
-        if (response.ok) {
-        } else {
+            const categoriasData = Array.isArray(response.data.Scategorias) ? response.data.Scategorias : [];
+            setCategorias(categoriasData);
+        } catch (error) {
+            console.error('Erro ao buscar categorias:', error);
         }
     };
 
+    useEffect(() => {
+        fetchCategorias();
+    }, []);
+
+    const handleCheckboxChange = (categoriaId) => {
+        setScategoriaId(prevData => {
+            const categoriaIdExists = prevData.includes(categoriaId);
+            const updatedCategoriaId = categoriaIdExists
+                ? prevData.filter(id => id !== categoriaId)
+                : [...prevData, categoriaId];
+            return updatedCategoriaId;
+        });
+    };
+
+    // Função para adicionar uma nova data à agenda
+    const addDateToAgenda = (date) => {
+        if (!agenda.includes(date)) { // Evitar adicionar a mesma data duas vezes
+            setAgenda(prevAgenda => [...prevAgenda, date]);
+        }
+    };
+    
+    // Função para remover a data da agenda
+    const removeDateFromAgenda = (date) => {
+        setAgenda(prevAgenda => prevAgenda.filter(item => item !== date));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault(); // Isso impede o comportamento padrão do formulário
+    
+        router.push('/paginicial');
+        console.log("Formulário enviado!"); // Verifique se esse log aparece
+    
+        const token = localStorage.getItem('token');
+        if (!token) {
+            console.error('Token não encontrado!');
+            return;
+        }
+    
+        try {
+            const response = await axios.post('http://localhost:8000/api/servicos', 
+                {
+                    cidade,
+                    bairro,
+                    descricao,
+                    valor,
+                    agenda,
+                    scategoriaId,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+    
+            if (response.status === 200) {
+                console.log('Serviço criado com sucesso:', response.data);
+                router.push('/paginicial');
+            }
+        } catch (error) {
+            console.error('Erro ao criar serviço:', error.response?.data || error.message);
+        }
+    };
+    
+    
     return (
         <div>
             <NavBar />
@@ -43,19 +111,32 @@ const CriarServico = () => {
                         <div className="p-6 bg-white border-b border-gray-200 rounded-lg">
                             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Criar Serviço</h2>
                             <form onSubmit={handleSubmit}>
-                                {/* Campos existentes */}
                                 <div className="mb-4">
-                                    <label htmlFor="titulo" className="block text-sm font-medium text-orange-500">Nome do Serviço:</label>
+                                    <label htmlFor="cidade" className="block text-sm font-medium text-orange-500">Cidade:</label>
                                     <input
                                         type="text"
-                                        name="titulo"
-                                        id="titulo"
-                                        value={titulo}
-                                        onChange={(e) => setTitulo(e.target.value)}
+                                        name="cidade"
+                                        id="cidade"
+                                        value={cidade}
+                                        onChange={(e) => setCidade(e.target.value)}
                                         required
                                         className="form-input mt-1 block w-full rounded-lg"
                                     />
                                 </div>
+
+                                <div className="mb-4">
+                                    <label htmlFor="bairro" className="block text-sm font-medium text-orange-500">Bairro:</label>
+                                    <input
+                                        type="text"
+                                        name="bairro"
+                                        id="bairro"
+                                        value={bairro}
+                                        onChange={(e) => setBairro(e.target.value)}
+                                        required
+                                        className="form-input mt-1 block w-full rounded-lg"
+                                    />
+                                </div>
+
                                 <div className="mb-4">
                                     <label htmlFor="descricao" className="block text-sm font-medium text-orange-500">Descrição:</label>
                                     <input
@@ -68,10 +149,11 @@ const CriarServico = () => {
                                         className="form-input mt-1 block w-full rounded-lg"
                                     />
                                 </div>
+
                                 <div className="mb-4">
                                     <label htmlFor="valor" className="block text-sm font-medium text-orange-500">Valor:</label>
                                     <input
-                                        type="text"
+                                        type="number"
                                         name="valor"
                                         id="valor"
                                         value={valor}
@@ -80,46 +162,61 @@ const CriarServico = () => {
                                         className="form-input mt-1 block w-full rounded-lg"
                                     />
                                 </div>
-                                {/* Campos de data de disponibilidade */}
+
                                 <div className="mb-4">
-                                    <label htmlFor="dia" className="block text-sm font-medium text-orange-500">Data de Disponibilidade:</label>
-                                    <input
-                                        type="date"
-                                        name="dia"
-                                        id="dia"
-                                        value={dataDisponibilidade.dia}
-                                        onChange={(e) => setDataDisponibilidade({ ...dataDisponibilidade, dia: e.target.value })}
-                                        required
-                                        className="form-input mt-1 block w-full rounded-lg"
-                                    />
-                                </div>
+                                    <label htmlFor="agenda" className="block text-sm font-medium text-orange-500">Datas Indisponíveis:</label>
+                                    <div className="flex space-x-4">
+                                        <input
+                                            type="date"
+                                            value={selectedDate} // Usando o estado selectedDate
+                                            onChange={(e) => {
+                                                setSelectedDate(e.target.value); // Atualiza o selectedDate
+                                                addDateToAgenda(e.target.value); // Adiciona a data imediatamente após seleção
+                                            }}
+                                            required
+                                            className="form-input mt-1 block w-full rounded-lg"
+                                        />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-orange-500 mt-4">Datas Indisponíveis:</h3>
+                                        {agenda.map((date, index) => (
+                                            <div key={index} className="flex items-center justify-between">
+                                                <span>{date}</span> {/* Exibindo a data única */}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeDateFromAgenda(date)}
+                                                    className="text-red-500"
+                                                >
+                                                    Remover
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>   
+
                                 <div className="mb-4">
-                                    <label htmlFor="horarioInicio" className="block text-sm font-medium text-orange-500">Horário de Início:</label>
-                                    <input
-                                        type="time"
-                                        name="horarioInicio"
-                                        id="horarioInicio"
-                                        value={dataDisponibilidade.horarioInicio}
-                                        onChange={(e) => setDataDisponibilidade({ ...dataDisponibilidade, horarioInicio: e.target.value })}
-                                        required
-                                        className="form-input mt-1 block w-full rounded-lg"
-                                    />
+                                    <label className="text-orange-500">Categorias:</label>
+                                    <div>
+                                        {categorias.map((categoria) => (
+                                            <div key={categoria.id} className="flex items-center space-x-2 mb-3">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={scategoriaId.includes(categoria.id)}
+                                                    onChange={() => handleCheckboxChange(categoria.id)}
+                                                    className="rounded border-gray-300 text-orange-500 focus:ring-2 focus:ring-orange-500"
+                                                />
+                                                <label className="text-black">{categoria.titulo}</label>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                                <div className="mb-4">
-                                    <label htmlFor="horarioFim" className="block text-sm font-medium text-orange-500">Horário de Fim:</label>
-                                    <input
-                                        type="time"
-                                        name="horarioFim"
-                                        id="horarioFim"
-                                        value={dataDisponibilidade.horarioFim}
-                                        onChange={(e) => setDataDisponibilidade({ ...dataDisponibilidade, horarioFim: e.target.value })}
-                                        required
-                                        className="form-input mt-1 block w-full rounded-lg"
-                                    />
-                                </div>
-                                <div>
-                                    <button type="submit" className="bg-gray-700 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Enviar</button>
-                                </div>
+
+                                <button
+                                    type="submit"
+                                    className="mt-4 bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-md"
+                                >
+                                    Criar Serviço
+                                </button>
                             </form>
                         </div>
                     </div>
