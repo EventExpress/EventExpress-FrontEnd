@@ -8,6 +8,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import Footer from '../../components/Footer';
 import Modal from 'react-modal'; 
 
+
 const CreateAnuncio = () => {
     const router = useRouter();
     const [formData, setFormData] = useState({
@@ -210,8 +211,8 @@ const CreateAnuncio = () => {
 
     return (
         <div>
-            <NavBar /> {}
-            <div className="flex flex-col items-center p-4 min-h-screen"
+            <NavBar /> 
+            <div className="bg-cover bg-center bg-fixed"
                 style={{backgroundImage: "url('/images/teste.jpg')", backgroundSize: "cover", backgroundPosition: "center",
                 }}>
                 <div className="py-5">

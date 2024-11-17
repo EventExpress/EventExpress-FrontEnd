@@ -1,4 +1,3 @@
-// src/pages/servicos/edit/[id].js
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import NavBar from '../../components/NavBar';
@@ -10,14 +9,20 @@ const EditarServico = () => {
     const { id } = router.query; // Obtém o id do serviço da URL
     const [servico, setServico] = useState(null);
     const [categorias, setCategorias] = useState([]);
-    const [categoriaSelecionada, setCategoriaSelecionada] = useState([]);
+    const [categoriaSelecionada, setCategoriaSelecionada] = useState([]); // Array para armazenar categorias selecionadas
     const [descricao, setDescricao] = useState('');
     const [valor, setValor] = useState('');
-    const [agenda, setAgenda] = useState([]);
+    const [agenda, setAgenda] = useState([]); // Array para armazenar datas
     const [cidade, setCidade] = useState('');
     const [bairro, setBairro] = useState('');
     const [errors, setErrors] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [checkboxOpen, setCheckboxOpen] = useState(false);
+
+    // Função para alternar a visibilidade da lista de categorias
+    const toggleCheckboxes = () => {
+        setCheckboxOpen(!checkboxOpen);
+    };
 
     useEffect(() => {
         if (id) {
@@ -49,12 +54,11 @@ const EditarServico = () => {
                 setValor(data.valor);
                 setCidade(data.cidade);
                 setBairro(data.bairro);
-                setAgenda(JSON.parse(data.agenda));
-                setCategoriaSelecionada(data.scategoriaId || []);
+                setAgenda(JSON.parse(data.agenda) || []); // Certifique-se de que a agenda seja um array
+                setCategoriaSelecionada(data.scategoriaId || []); // Categoria selecionada do serviço
             }
         } catch (error) {
             console.error('Erro ao buscar serviço:', error);
-            setErrors(['Erro ao buscar serviço.']);
         } finally {
             setLoading(false);
         }
@@ -77,7 +81,7 @@ const EditarServico = () => {
             });
 
             if (response.status === 200) {
-                setCategorias(response.data.Scategorias);
+                setCategorias(response.data.Scategorias); // Armazena as categorias
             }
         } catch (error) {
             console.error('Erro ao buscar categorias:', error);
@@ -88,8 +92,8 @@ const EditarServico = () => {
         setCategoriaSelecionada((prevData) => {
             const categoriaIdExists = prevData.includes(categoriaId);
             const updatedCategoriaId = categoriaIdExists
-                ? prevData.filter((id) => id !== categoriaId)
-                : [...prevData, categoriaId];
+                ? prevData.filter((id) => id !== categoriaId) // Remove a categoria se já estiver selecionada
+                : [...prevData, categoriaId]; // Adiciona a categoria se não estiver selecionada
             return updatedCategoriaId;
         });
     };
@@ -111,8 +115,8 @@ const EditarServico = () => {
                     bairro,
                     descricao,
                     valor,
-                    agenda,
-                    scategoriaId: categoriaSelecionada,
+                    agenda: JSON.stringify(agenda), // Envia a agenda como string JSON
+                    scategoriaId: categoriaSelecionada, // Envia categorias selecionadas
                 },
                 {
                     headers: {
@@ -132,16 +136,21 @@ const EditarServico = () => {
         }
     };
 
-    if (loading) return <p>Carregando...</p>;
+    // Verificar se o id está disponível antes de renderizar o componente
+    if (!id || loading) return <p>Carregando...</p>;
+
+    const handleRadioChange = (id) => {
+        setCategoriaSelecionada(id);
+    };
 
     return (
-        <div className="flex flex-col min-h-screen">
+        <div className="bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/images/servico.jpg')" }}>
             <NavBar />
             <div className="py-12 flex-grow">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6 text-gray-900 dark:text-gray-100">
-                            <h1 className="text-2xl font-semibold mb-4 text-orange-500">Editar Serviço</h1>
+                        <div className="bg-gray-700 p-6 rounded-lg shadow-md mb-6 overflow-hidden shadow-sm sm:rounded-lg">
+                            <h1 className="font-semibold text-2xl text-white leading-tight">Editar Serviço</h1>
 
                             {errors.length > 0 && (
                                 <div className="alert alert-danger mb-4">
@@ -211,7 +220,6 @@ const EditarServico = () => {
                                     <div className="flex space-x-4">
                                         <input
                                             type="date"
-                                            value={agenda.selectedDate}
                                             onChange={(e) => setAgenda([...agenda, e.target.value])}
                                             className="form-input mt-1 block w-full rounded-lg"
                                         />
@@ -224,7 +232,7 @@ const EditarServico = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() => setAgenda(agenda.filter((item) => item !== date))}
-                                                    className="text-red-500"
+                                                    className="text-red-500 hover:text-red-700"
                                                 >
                                                     Remover
                                                 </button>
@@ -233,29 +241,50 @@ const EditarServico = () => {
                                     </div>
                                 </div>
 
-                                <div className="mb-4">
+                                <div className="mt-6">
                                     <label className="text-orange-500">Categorias:</label>
-                                    <div>
-                                        {categorias.map((categoria) => (
-                                            <div key={categoria.id} className="flex items-center space-x-2 mb-3">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={categoriaSelecionada.includes(categoria.id)}
-                                                    onChange={() => handleCheckboxChange(categoria.id)}
-                                                    className="rounded border-gray-300 text-orange-500 focus:ring-2 focus:ring-orange-500"
-                                                />
-                                                <label className="text-black">{categoria.titulo}</label>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
+                                    <button 
+                                        type="button" 
+                                        onClick={toggleCheckboxes} 
+                                        className="text-black bg-orange-500 hover:bg-orange-600 focus:ring-4 focus:ring-orange-300 rounded-md px-4 py-2 mt-2 transition duration-200 ease-in-out">
+                                        Selecionar Categorias
+                                    </button>
 
-                                <button
-                                    type="submit"
-                                    className="mt-4 bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-md"
-                                >
-                                    Atualizar Serviço
-                                </button>
+                                    {checkboxOpen && (
+                                        <div className="mt-4 bg-gray-800 border border-gray-500 rounded-md p-4 shadow-lg">
+                                            {categorias.length > 0 ? (
+                                                categorias.map((categoria) => (
+                                                    <div key={categoria.id} className="flex items-center space-x-2 mb-3">
+                                                        <input
+                                                            type="radio"
+                                                            id={`categoria-${categoria.id}`} // id único para cada radio
+                                                            name="categoria"
+                                                            checked={categoriaSelecionada === categoria.id}
+                                                            onChange={() => handleRadioChange(categoria.id)}
+                                                            className="rounded border-gray-300 text-orange-500 focus:ring-2 focus:ring-orange-500"
+                                                        />
+                                                        <label
+                                                            htmlFor={`categoria-${categoria.id}`} // Associando o texto ao radio
+                                                            className="text-white cursor-pointer"
+                                                        >
+                                                            {categoria.titulo}
+                                                        </label>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="text-gray-400">Nenhuma categoria disponível.</div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="mt-6">
+                                    <button 
+                                        type="submit" 
+                                        className="text-white bg-orange-500 hover:bg-orange-700 p-3 rounded mt-4 w-full"
+                                    >
+                                        Atualizar Serviço
+                                    </button>
+                                </div>
                             </form>
                         </div>
                     </div>

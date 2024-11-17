@@ -1,19 +1,25 @@
 import NavBar from '../../components/NavBar';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useRouter } from 'next/router'; // Importe o useRouter
+import { useRouter } from 'next/router';
+import Footer from '../../components/Footer';
 
 const CriarServico = () => {
-    const router = useRouter(); // Instancie o router
+    const router = useRouter();
     const [categorias, setCategorias] = useState([]);
     const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
     const [descricao, setDescricao] = useState('');
     const [valor, setValor] = useState('');
-    const [agenda, setAgenda] = useState([]); 
+    const [agenda, setAgenda] = useState([]);
     const [cidade, setCidade] = useState('');
     const [bairro, setBairro] = useState('');
     const [scategoriaId, setScategoriaId] = useState([]);
-    const [selectedDate, setSelectedDate] = useState(''); // Adicionado para controlar a data selecionada
+    const [selectedDate, setSelectedDate] = useState('');
+    const [checkboxOpen, setCheckboxOpen] = useState(false);
+
+    const toggleCheckboxes = () => {
+        setCheckboxOpen(!checkboxOpen);
+    };
 
     const fetchCategorias = async () => {
         try {
@@ -50,23 +56,21 @@ const CriarServico = () => {
         });
     };
 
-    // Função para adicionar uma nova data à agenda
     const addDateToAgenda = (date) => {
-        if (!agenda.includes(date)) { // Evitar adicionar a mesma data duas vezes
+        if (!agenda.includes(date)) {
             setAgenda(prevAgenda => [...prevAgenda, date]);
         }
     };
     
-    // Função para remover a data da agenda
     const removeDateFromAgenda = (date) => {
         setAgenda(prevAgenda => prevAgenda.filter(item => item !== date));
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault(); // Isso impede o comportamento padrão do formulário
+        e.preventDefault();
     
         router.push('/paginicial');
-        console.log("Formulário enviado!"); // Verifique se esse log aparece
+        console.log("Formulário enviado!");
     
         const token = localStorage.getItem('token');
         if (!token) {
@@ -101,15 +105,18 @@ const CriarServico = () => {
         }
     };
     
-    
+    const handleRadioChange = (id) => {
+        setCategoriaSelecionada(id);
+    };
+
     return (
-        <div>
+        <div className="bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/images/servico.jpg')" }}>
             <NavBar />
             <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6 bg-white border-b border-gray-200 rounded-lg">
-                            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Criar Serviço</h2>
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 " >
+                    <div className=" overflow-hidden shadow-sm sm:rounded-lg" >
+                        <div className="bg-gray-700 p-6 rounded-lg shadow-md mb-6 overflow-hidden shadow-sm sm:rounded-lg">
+                            <h2 className="font-semibold text-2xl text-white leading-tight">Adicionar Serviço</h2>
                             <form onSubmit={handleSubmit}>
                                 <div className="mb-4">
                                     <label htmlFor="cidade" className="block text-sm font-medium text-orange-500">Cidade:</label>
@@ -168,10 +175,10 @@ const CriarServico = () => {
                                     <div className="flex space-x-4">
                                         <input
                                             type="date"
-                                            value={selectedDate} // Usando o estado selectedDate
+                                            value={selectedDate}
                                             onChange={(e) => {
-                                                setSelectedDate(e.target.value); // Atualiza o selectedDate
-                                                addDateToAgenda(e.target.value); // Adiciona a data imediatamente após seleção
+                                                setSelectedDate(e.target.value);
+                                                addDateToAgenda(e.target.value);
                                             }}
                                             required
                                             className="form-input mt-1 block w-full rounded-lg"
@@ -181,7 +188,7 @@ const CriarServico = () => {
                                         <h3 className="text-orange-500 mt-4">Datas Indisponíveis:</h3>
                                         {agenda.map((date, index) => (
                                             <div key={index} className="flex items-center justify-between">
-                                                <span>{date}</span> {/* Exibindo a data única */}
+                                                <span>{date}</span>
                                                 <button
                                                     type="button"
                                                     onClick={() => removeDateFromAgenda(date)}
@@ -193,24 +200,42 @@ const CriarServico = () => {
                                         ))}
                                     </div>
                                 </div>   
-
-                                <div className="mb-4">
+                                <div className="mt-6">
                                     <label className="text-orange-500">Categorias:</label>
-                                    <div>
-                                        {categorias.map((categoria) => (
-                                            <div key={categoria.id} className="flex items-center space-x-2 mb-3">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={scategoriaId.includes(categoria.id)}
-                                                    onChange={() => handleCheckboxChange(categoria.id)}
-                                                    className="rounded border-gray-300 text-orange-500 focus:ring-2 focus:ring-orange-500"
-                                                />
-                                                <label className="text-black">{categoria.titulo}</label>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
+                                    <button 
+                                        type="button" 
+                                        onClick={toggleCheckboxes} 
+                                        className="text-black bg-orange-500 hover:bg-orange-600 focus:ring-4 focus:ring-orange-300 rounded-md px-4 py-2 mt-2 transition duration-200 ease-in-out">
+                                        Selecionar Categorias
+                                    </button>
 
+                                    {checkboxOpen && (
+                                        <div className="mt-4 bg-gray-800 border border-gray-500 rounded-md p-4 shadow-lg">
+                                            {categorias.length > 0 ? (
+                                                categorias.map((categoria) => (
+                                                    <div key={categoria.id} className="flex items-center space-x-2 mb-3">
+                                                        <input
+                                                            type="radio"
+                                                            id={`categoria-${categoria.id}`}
+                                                            name="categoria"
+                                                            checked={categoriaSelecionada === categoria.id}
+                                                            onChange={() => handleRadioChange(categoria.id)}
+                                                            className="rounded border-gray-300 text-orange-500 focus:ring-2 focus:ring-orange-500"
+                                                        />
+                                                        <label 
+                                                            htmlFor={`categoria-${categoria.id}`}
+                                                            className="text-white cursor-pointer"
+                                                        >
+                                                            {categoria.titulo}
+                                                        </label>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="text-gray-400">Nenhuma categoria disponível.</div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                                 <button
                                     type="submit"
                                     className="mt-4 bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-md"
@@ -222,6 +247,7 @@ const CriarServico = () => {
                     </div>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 };

@@ -77,7 +77,6 @@ const MeusServicos = () => {
         }
     };
 
-
     return (
         <div className="flex flex-col min-h-screen">
             <NavBar />
@@ -124,16 +123,16 @@ const MeusServicos = () => {
                                                         <p className="text-gray-500">Nenhuma data disponível.</p>
                                                     )}
 
-                                                    <div className="mt-4">
-                                                        <a
-                                                            href={`/servicos/edit/${servico.id}`}
-                                                            className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg"
+                                                    <div className="mt-4 flex justify-between">
+                                                        <button
+                                                            onClick={() => router.push(`/servicos/edit?id=${servico.id}`)}
+                                                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
                                                         >
                                                             Editar
-                                                        </a>
+                                                        </button>
                                                         <button
                                                             onClick={() => handleDelete(servico.id)}
-                                                            className="bg-red-700 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg"
+                                                            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
                                                         >
                                                             Excluir
                                                         </button>
