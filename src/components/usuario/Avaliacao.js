@@ -1,20 +1,59 @@
-// src/components/Avaliacao.js
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
-const Avaliacao = ({ onClose }) => {
+const Avaliacao = ({ tipoUsuario, dataAgendamento }) => {
+  const [showPopup, setShowPopup] = useState(false);
+  const [dataAtual, setDataAtual] = useState(new Date());
+
+  useEffect(() => {
+    // Verifica se o tipo de usuário é compatível e se a data de agendamento já passou
+    if (new Date(dataAgendamento) < dataAtual) {
+      setShowPopup(true); // Exibe o popup quando a data de agendamento já passou
+    }
+  }, [dataAgendamento, dataAtual]);
+
+  // Função para exibir a avaliação dependendo do tipo de usuário
+  const renderAvaliacao = () => {
+    switch (tipoUsuario) {
+      case 'Locatario':
+        return (
+          <div>
+            <h2>Avalie o Locador e o Prestador</h2>
+            {/* Campos para avaliação do Locador e Prestador */}
+            <textarea placeholder="Avaliação do Locador" />
+            <textarea placeholder="Avaliação do Prestador" />
+          </div>
+        );
+      case 'Locador':
+        return (
+          <div>
+            <h2>Avalie o Locatário</h2>
+            <textarea placeholder="Avaliação do Locatário" />
+          </div>
+        );
+      case 'Prestador':
+        return (
+          <div>
+            <h2>Avalie o Locatário</h2>
+            <textarea placeholder="Avaliação do Locatário" />
+          </div>
+        );
+      default:
+        return <div><h2>Avaliação não disponível</h2></div>;
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h1 className="text-xl font-bold">Avaliação</h1>
-        <p>Conteúdo da avaliação...</p>
-        <button 
-          onClick={onClose} 
-          className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-        >
-          Fechar
-        </button>
-      </div>
-    </div>
+    <>
+      {showPopup && (
+        <div className="popup">
+          <div className="popup-content">
+            <button onClick={() => setShowPopup(false)}>Fechar</button>
+            {renderAvaliacao()}
+            <button onClick={() => alert('Avaliação enviada!')}>Enviar Avaliação</button>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import NavBar from '../../components/NavBar';
 import Footer from '../../components/Footer';
@@ -37,7 +37,6 @@ const AnunciosIndex = () => {
               'Authorization': `Bearer ${token}`,
             },
           });
-          console.log('Resposta da API (Anúncios):', response.data);
 
           if (response.data && Array.isArray(response.data.results)) {
             const anunciosData = response.data.results;
@@ -82,7 +81,6 @@ const AnunciosIndex = () => {
     router.push(`/agendados/create?anuncioId=${anuncioId}`);
   };
 
-
   return (
     <div className="flex flex-col min-h-screen">
       <NavBar />
@@ -99,43 +97,45 @@ const AnunciosIndex = () => {
             ) : currentAnuncios.length > 0 ? (
               <div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                  {currentAnuncios.map(anuncio => (
-                    <div key={anuncio.id} className="border rounded-lg p-4 shadow-md cursor-pointer" onClick={() => handleReservar(anuncio.id)}>
-                      <h2 className="text-xl font-bold">{anuncio.titulo || 'Título não disponível'}</h2>
-                      <p className="text-gray-700">{anuncio.descricao ? `${anuncio.descricao.slice(0, 50)}${anuncio.descricao.length > 50 ? '...' : ''}` : 'Descrição não disponível'}</p>
-                      <p className="text-lg font-semibold text-orange-500"> {anuncio.valor ? `R$${anuncio.valor} ` : 'Valor não disponível'} </p>   
-                      {anuncio.imagens && anuncio.imagens.length > 0 ? (
-                        <img 
-                          src={`${backendUrl}${anuncio.imagens[0].image_path}`} 
-                          alt={anuncio.titulo} 
-                          className="w-full h-32 object-cover mt-2"
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = 'https://via.placeholder.com/150';
+                  {currentAnuncios.map(anuncio => {
+                    return (
+                      <div key={anuncio.id} className="border rounded-lg p-4 shadow-md cursor-pointer" onClick={() => handleReservar(anuncio.id)}>
+                        <h2 className="text-xl font-bold">{anuncio.titulo || 'Título não disponível'}</h2>
+                        <p className="text-gray-700">{anuncio.descricao ? `${anuncio.descricao.slice(0, 50)}${anuncio.descricao.length > 50 ? '...' : ''}` : 'Descrição não disponível'}</p>
+                        <p className="text-lg font-semibold text-orange-500"> {anuncio.valor ? `R$${anuncio.valor} ` : 'Valor não disponível'} </p>   
+                        {anuncio.imagens && Array.isArray(anuncio.imagens) && anuncio.imagens.length > 0 ? (
+                          <img
+                            src={anuncio.imagens[0].image_path}
+                            alt={anuncio.titulo || 'Imagem do Anúncio'}
+                            className="w-full h-32 object-cover mt-2"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = 'https://via.placeholder.com/150';
+                            }}
+                          />
+                        ) : (
+                          <p className="text-gray-500">Imagem não disponível</p>
+                        )}
+
+                        {anuncio.user ? (
+                          <div className="mt-2 text-gray-600">
+                            <p><strong>Locador:</strong> {anuncio.user.nome} {anuncio.user.sobrenome}</p>
+                          </div>
+                        ) : (
+                          <p className="text-gray-500">Locador não disponível</p>
+                        )}
+
+                        <button 
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            handleReservar(anuncio.id);
                           }}
-                        />
-                      ) : (
-                        <p className="text-gray-500">Imagem não disponível</p>
-                      )}
-
-                      {anuncio.user ? (
-                        <div className="mt-2 text-gray-600">
-                          <p><strong>Locador:</strong> {anuncio.user.nome} {anuncio.user.sobrenome}</p>
-                        </div>
-                      ) : (
-                        <p className="text-gray-500">Locador não disponível</p>
-                      )}
-
-                      <button 
-                        onClick={(e) => { 
-                          e.stopPropagation(); 
-                          handleReservar(anuncio.id);
-                        }}
-                        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                        Reservar
-                      </button>
-                    </div>
-                  ))}
+                          className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                          Reservar
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
                 <div className="flex justify-between mt-4">
                   <button 

@@ -1,28 +1,22 @@
-// src/pages/avaliacao.js
-import React, { useState } from 'react';
-import Avaliacao from '../components/Avaliacao';
+import React, { useContext } from 'react';
+import Avaliacao from '../components/Avaliacao'; // Componente de avaliação
+import { AuthContext } from '../app/context/AuthContext'; // Contexto de autenticação
 
 const AvaliacaoPage = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const { user } = useContext(AuthContext); // Obtendo o usuário autenticado do contexto
 
-  const openModal = () => {
-    setIsOpen(true);
-  };
+  // Exemplo de data agendada
+  const dataAgendamento = '2024-11-17T00:00:00Z'; // Substitua com a data real do agendamento do anúncio
 
-  const closeModal = () => {
-    setIsOpen(false);
-  };
+  if (!user) {
+    return <div>Carregando...</div>;
+  }
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold mb-4">Página de Avaliação</h1>
-      <button 
-        onClick={openModal} 
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-      >
-        Abrir Avaliação
-      </button>
-      {isOpen && <Avaliacao onClose={closeModal} />}
+      <h1>Avaliação de Anúncio</h1>
+      {/* Passa o tipo de usuário e a data de agendamento para o componente Avaliacao */}
+      <Avaliacao tipoUsuario={user.tipousu} dataAgendamento={dataAgendamento} />
     </div>
   );
 };
