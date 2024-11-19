@@ -11,6 +11,7 @@ import PaymentModal from '../../components/PaymentModal';
 import { format } from 'date-fns';
 import { isAfter } from 'date-fns';
 import { startOfDay } from 'date-fns';
+import { StarIcon } from '@heroicons/react/24/solid';
 
 export default function CreateReserva() {
     const [dataInicio, setDataInicio] = useState(null);
@@ -38,6 +39,30 @@ export default function CreateReserva() {
     const [isReservaSuccessModalOpen, setIsReservaSuccessModalOpen] = useState(false);
     const openReservaSuccessModal = () => setIsReservaSuccessModalOpen(true);
     const closeReservaSuccessModal = () => setIsReservaSuccessModalOpen(false);
+    const [categorias, setCategorias] = useState({});
+
+    useEffect(() => {
+  const fetchCategoria = async (categoriaId) => {
+    try {
+      const response = await axios.get(`http://localhost:8000/api/categoria/${categoriaId}`);
+      if (response.data) {
+        setCategorias(prevCategorias => ({
+          ...prevCategorias,
+          [categoriaId]: response.data.nome,  // Armazenando o nome da categoria com o id como chave
+        }));
+      }
+    } catch (error) {
+      console.error('Erro ao buscar categoria:', error);
+    }
+  };
+
+  // Buscar a categoria para todos os serviços
+  servicos.forEach(servico => {
+    if (servico.categoria_id) {
+      fetchCategoria(servico.categoria_id);
+    }
+  });
+}, [servicos]);
 
     const onClose = () => {
         setIsModalOpen(false);
@@ -85,8 +110,19 @@ export default function CreateReserva() {
                     });           
                     const anuncios = response.data.anuncios || [];            
                     const anuncio = anuncios.find((anuncio) => anuncio.id === parseInt(anuncioId));            
+    
                     if (anuncio) {
-                        setAnuncio(anuncio); 
+                        // Busca as avaliações do anúncio
+                        const avaliacaoResponse = await axios.get(`http://localhost:8000/api/anuncios/${anuncio.id}/avaliacoes`, {
+                            headers: { Authorization: `Bearer ${token}` },
+                        });
+    
+                        const mediaAvaliacoes = avaliacaoResponse.data.media_avaliacoes || 0; // Pegando a média das avaliações, por exemplo
+    
+                        setAnuncio({
+                            ...anuncio,
+                            media_avaliacoes: mediaAvaliacoes, // Adicionando a média de avaliações ao anúncio
+                        }); 
                     } else {
                         setErrorMessage('Anúncio não encontrado.');
                     }
@@ -100,6 +136,7 @@ export default function CreateReserva() {
             fetchAnuncio();
         }
     }, [anuncioId, token]);
+    
     
     useEffect(() => {
         if (anuncio && anuncio.user_id && token) {
@@ -294,88 +331,107 @@ export default function CreateReserva() {
     const CreateAgendamento = ({ onClose }) => {
     }
 
-        return (
-            <div>
-                <NavBar />
+    const renderStars = (media) => {
+        const stars = [];
+        for (let i = 1; i <= 5; i++) {
+          stars.push(
+            <StarIcon
+              key={i}
+              className={`h-5 w-5 ${i <= media ? 'text-yellow-500' : 'text-gray-300'}`}
+            />
+          );
+        }
+        return stars;
+      };
+
+      return (
+        <div>
+          <NavBar />
                 <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white shadow-sm sm:rounded-lg">
-                      <div className="p-6 bg-white border-b border-gray-200 rounded-lg">
-                        <div className="flex justify-between items-center">
-                          <h3 className="text-2xl font-semibold mb-2"> {anuncio ? anuncio.titulo : 'Título não disponível'}</h3>
-                          {locador ? ( <h3 className="mb-2">local disponibilizado por {locador.user?.nome || 'Locador não disponível'}</h3>
-                          ) : ( <p className="text-right text-sm text-gray-600">Locador não encontrado</p>
-                          )}
-                        </div>                  
-                        {errorMessage && <p className="text-red-500">{errorMessage}</p>}
-                        {loading ? (
-                          <p>Carregando informações do anúncio...</p>
-                        ) : anuncio ? (
-                          <div className="mt-4 flex items-start border-2 border-orange-500 bg-orange-50 p-6 rounded-lg shadow-md mb-6">
-                            {anuncio.imagens && anuncio.imagens.length > 0 && (
-                              <img src={anuncio.imagens[0].image_path} alt={anuncio.titulo} className="w-2/5 h-auto rounded-lg mb-4"/>
-                            )}
-                            <div className="ml-6 flex-1">
-                              <p className="mb-40">{anuncio.descricao}</p>
-                              <p><strong>Capacidade:</strong> {anuncio.capacidade} Pessoas</p>
-                              <p><strong>R$:</strong>{anuncio.valor}</p>
-                            </div>
-                          </div>
-                        ) : (
-                          <p>Não foi possível carregar os detalhes do anúncio.</p>
-                        )}
-                                <form onSubmit={handleSubmit}>
-                                <div className="flex space-x-4 mb-4">
-                                  <div className="flex-1 bg-gray-200 p-4 rounded-lg shadow-lg border-2 border-orange-500 bg-orange-50">
-                                    <label className="block text-sm font-medium text-black-500 mb-2">Data de Início do Anúncio:</label>
-                                    <div className="flex items-center space-x-4">
-                                      <div className="relative flex-1">
-                                        <Calendar onChange={handleDataInicioGeneralChange}
-                                          value={dataInicio}
-                                          tileDisabled={({ date }) => isDataIndisponivel(date)}
-                                          locale={ptBR} className="custom-calendar"/>
-                                      </div>
-                                      <div className="w-1/3">
-                                        <label className="block text-sm font-medium text-black-500 mb-2">Hora de Início:</label>
-                                        <div className="relative">
-                                          <select value={horaInicio} onChange={handleHoraInicioChange}
-                                            className="w-full p-3 border rounded-lg bg-white shadow-sm text-lg focus:ring-2 focus:ring-orange-500 border-1 border-orange-500">
-                                            {timeOptionsInicio.map((option) => ( <option key={option} value={option}>{option} </option>
-                                            ))}
-                                          </select>
-                                        </div>
-                                      </div>
+                    <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                        <div className="bg-white shadow-sm sm:rounded-lg">
+                            <div className="p-6 bg-white border-b border-gray-200 rounded-lg">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="text-2xl font-semibold mb-2">
+                                    {anuncio ? anuncio.titulo : 'Título não disponível'}</h3>
+                                    {locador ? (
+                                <h3 className="mb-2">local disponibilizado por {locador.user?.nome || 'Locador não disponível'}
+                                    <div className="flex items-center space-x-2">
+                                        {renderStars(anuncio.media_avaliacoes)}
+                                        <label title="Notas do anúncio" className="text-sm text-gray-500 cursor-pointer">Avaliações</label>
                                     </div>
-                                  </div>
-                                  <div className="flex-1 bg-gray-200 p-4 rounded-lg shadow-lg border-2 border-orange-500 bg-orange-50">
-                                    <label className="block text-sm font-medium text-black-500 mb-2">Data de Fim do Anúncio:</label>
-                                    <div className="flex items-center space-x-4">
-                                      <div className="relative flex-1">
-                                        <Calendar onChange={handleDataFimGeneralChange}
-                                          value={dataFim}
-                                          tileDisabled={({ date }) => isDataIndisponivel(date)}
-                                          locale={ptBR} className="custom-calendar"/>
-                                      </div>
-                                      <div className="w-1/3 ">
-                                        <label className="block text-sm font-medium text-black-500 mb-2">Hora de Fim:</label>
-                                        <div className="relative">
-                                          <select value={horaFim} onChange={(e) =>
-                                            setHoraFim(e.target.value)} className="w-full p-3 border rounded-lg bg-white shadow-sm text-lg focus:ring-2 focus:ring-orange-500 border-1 border-orange-500">
-                                            {timeOptionsFim.map((option) => (
-                                              <option key={option} value={option}> {option} </option>
-                                            ))}
-                                          </select>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
+                                    </h3>
+                                ) : (
+                                <p className="text-right text-sm text-gray-600">Locador não encontrado</p>
+                                )}
                                 </div>
-                                <div className="flex-1 bg-gray-200 p-4 rounded-lg shadow-lg border-2 border-orange-500 bg-orange-50">
-                                <label className="block text-lg font-medium text-black-500">Escolher Serviços:</label>
-                                    {servicos.length > 0 ? (
-                                        <div className="flex flex-wrap gap-4 mt-4">
-                                            {servicos.map((servico) => (
-                                                <div className="flex-shrink-0 w-full sm:w-80 md:w-96 bg-white shadow-md rounded-lg p-4 mb-4" key={servico.id}>
+                            {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+                            {loading ? (
+                                <p>Carregando informações do anúncio...</p>
+                            ) : anuncio ? (
+                                <div className="mt-4 flex items-start border-2 border-orange-500 bg-orange-50 p-6 rounded-lg shadow-md mb-6">
+                                    {anuncio.imagens && anuncio.imagens.length > 0 && (
+                                    <img src={anuncio.imagens[0].image_path} alt={anuncio.titulo} className="w-2/5 h-auto rounded-lg mb-4"/>
+                                )}
+                                    <div className="ml-6 flex-1">
+                                        <p className="mb-40">{anuncio.descricao}</p>
+                                        <p><strong>Capacidade:</strong> {anuncio.capacidade} Pessoas</p>
+                                        <p><strong>R$:</strong> {anuncio.valor}</p>
+                                    </div>
+                                </div>
+                                ) : (
+                                    <p>Não foi possível carregar os detalhes do anúncio.</p>
+                                )}
+                                    <form onSubmit={handleSubmit}>
+                                        <div className="flex space-x-4 mb-4">
+                                            <div className="flex-1 bg-gray-200 p-4 rounded-lg shadow-lg border-2 border-orange-500 bg-orange-50">
+                                                <label className="block text-sm font-medium text-black-500 mb-2">Data de Início do Anúncio:</label>
+                                                    <div className="flex items-center space-x-4">
+                                                        <div className="relative flex-1">
+                                                            <Calendar onChange={handleDataInicioGeneralChange}value={dataInicio}
+                                                            tileDisabled={({ date }) => isDataIndisponivel(date)}
+                                                            locale={ptBR} className="custom-calendar"/>
+                                                        </div>
+                                                    <div className="w-1/3">
+                                                        <label className="block text-sm font-medium text-black-500 mb-2">Hora de Início:</label>
+                                                            <div className="relative">
+                                                                <select value={horaInicio} onChange={handleHoraInicioChange}
+                                                                className="w-full p-3 border rounded-lg bg-white shadow-sm text-lg focus:ring-2 focus:ring-orange-500 border-1 border-orange-500">
+                                                                {timeOptionsInicio.map((option) => ( <option key={option} value={option}>{option} </option>
+                                                            ))}
+                                                                </select>
+                                                            </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="flex-1 bg-gray-200 p-4 rounded-lg shadow-lg border-2 border-orange-500 bg-orange-50">
+                                                <label className="block text-sm font-medium text-black-500 mb-2">Data de Fim do Anúncio:</label>
+                                                    <div className="flex items-center space-x-4">
+                                                        <div className="relative flex-1">
+                                                            <Calendar onChange={handleDataFimGeneralChange} value={dataFim}
+                                                            tileDisabled={({ date }) => isDataIndisponivel(date)}
+                                                            locale={ptBR} className="custom-calendar"/>
+                                                        </div>
+                                                        <div className="w-1/3 ">
+                                                            <label className="block text-sm font-medium text-black-500 mb-2">Hora de Fim:</label>
+                                                            <div className="relative">
+                                                                <select value={horaFim} onChange={(e) =>
+                                                                setHoraFim(e.target.value)} className="w-full p-3 border rounded-lg bg-white shadow-sm text-lg focus:ring-2 focus:ring-orange-500 border-1 border-orange-500">
+                                                                {timeOptionsFim.map((option) => (
+                                                                <option key={option} value={option}> {option} </option>
+                                                            ))}
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex-1 bg-gray-200 p-4 rounded-lg shadow-lg border-2 border-orange-500 bg-orange-50">
+                                            <label className="block text-lg font-medium text-black-500">Escolher Serviços:</label>
+                                            {servicos.length > 0 ? (
+                                            <div className="flex flex-wrap gap-4 mt-4">
+                                                {servicos.map((servico) => (
+                                                    <div className="flex-shrink-0 w-full sm:w-80 md:w-96 bg-white shadow-md rounded-lg p-4 mb-4 mx-auto" key={servico.id}>
                                                     <div className="flex flex-col w-full">
                                                         <div className="flex justify-between items-center mb-2">
                                                             <div className="flex items-center">
@@ -418,11 +474,11 @@ export default function CreateReserva() {
                                                     </div>
                                                 </div>
                                             ))}
-                                        </div>
+                                            </div>
                                     ) : (
                                         <p className="text-gray-500">Nenhum serviço disponível.</p>
                                     )}
-                                </div>
+                                        </div>
                                 <div className="flex justify-between items-center mt-4"> <span className="font-bold text-lg">Valor Total:</span>
                                     <span className="font-semibold text-xl text-orange-500">R$ {valorTotal.toFixed(2)}</span>
                                 </div>
@@ -436,6 +492,7 @@ export default function CreateReserva() {
                     </div>
                 </div>
             </div>
+
             <PaymentModal isOpen={isModalOpen} onClose={closeModal} onSelectPayment={handleSelectPayment}/>
             <ReservaSuccessModal isOpen={isReservaSuccessModalOpen} onClose={closeReservaSuccessModal} />
             {isReservaSuccessModalOpen && (

@@ -66,6 +66,7 @@ const NavBar = () => {
         setUserType(type);
         setUserTypeDropdown(false);
         localStorage.setItem('userType', type);
+        router.push('/paginicial');
     };
 
     return (
@@ -73,16 +74,13 @@ const NavBar = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     <div className="flex items-center">
-                        <Link href="/">
+                        <Link href="/paginicial" className="flex items-center">
                             <ApplicationLogo className="block h-9 w-auto fill-current text-orange-400 dark:text-gray-200" />
+                            <label className="ml-3 text-orange-400 font-bold text-xl cursor-pointer">
+                                EventExpress
+                            </label>
                         </Link>
-                        <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                            <Link href="/paginicial" className="text-gray-900 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium mt-2">
-                                Início
-                            </Link>
-                        </div>
                     </div>
-
                     <form onSubmit={handleSearchSubmit} className="flex items-center">
                         <input
                             type="text"
@@ -119,9 +117,6 @@ const NavBar = () => {
                                             <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                 Meu Perfil
                                             </Link>
-                                            <Link href="/relatorios" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                                Relatórios
-                                            </Link>
                                             {userType === 'Locatário' && (
                                                 <>
                                                     <Link href="/agendados/visualizar" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
@@ -129,6 +124,9 @@ const NavBar = () => {
                                                     </Link>
                                                     <Link href="/agendados/historico" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                         Histórico
+                                                    </Link>
+                                                    <Link href="/relatorios" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                        Relatórios
                                                     </Link>
                                                 </>
                                             )}
@@ -140,6 +138,9 @@ const NavBar = () => {
                                                     <Link href="/anuncios/create" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                         Criar Anúncio
                                                     </Link>
+                                                    <Link href="/anuncios/relatorios" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                        Relatórios
+                                                    </Link>
                                                 </>
                                             )}
                                             {userType === 'Prestador' && (
@@ -149,6 +150,9 @@ const NavBar = () => {
                                                     </Link>
                                                     <Link href="/servicos/create" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                         Criar Serviço
+                                                    </Link>
+                                                    <Link href="/servicos/relatorios" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                        Relatórios
                                                     </Link>
                                                 </>
                                             )}
