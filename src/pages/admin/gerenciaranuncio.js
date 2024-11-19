@@ -9,6 +9,9 @@ const Paginicial = () => {
   const [anuncios, setAnuncios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);  // Modal de exclusão
+  const [selectedAnuncio, setSelectedAnuncio] = useState(null); // Anúncio selecionado
+  const [successMessage, setSuccessMessage] = useState('');  // Mensagem de sucesso ou erro
   const router = useRouter();
 
   useEffect(() => {
@@ -46,7 +49,6 @@ const Paginicial = () => {
   }, [router]);
 
   const handleDelete = async (anuncioId) => {
-    const confirmDelete = confirm('Deseja realmente excluir este anúncio?');
     const token = localStorage.getItem('token');
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -58,10 +60,11 @@ const Paginicial = () => {
         },
       });
       setAnuncios(anuncios.filter((anuncio) => anuncio.id !== anuncioId));
-      alert('Anúncio excluído com sucesso!');
+      setSuccessMessage('Anúncio excluído com sucesso!');
     } catch (error) {
-      alert('Erro ao excluir o anúncio.');
+      setSuccessMessage('Erro ao excluir o anúncio.');
     }
+    setShowModal(false);  // Fechar modal após ação
   };
 
   return (
@@ -113,7 +116,10 @@ const Paginicial = () => {
                       {new Date(anuncio.updated_at).toLocaleString()}
                     </p>
                     <button
-                      onClick={() => handleDelete(anuncio.id)}
+                      onClick={() => {
+                        setSelectedAnuncio(anuncio);
+                        setShowModal(true);
+                      }}
                       className="mt-4 bg-red-500 text-white py-2 px-4 rounded w-full"
                     >
                       <TrashIcon className="h-5 w-5 inline mr-1" /> Excluir
@@ -127,6 +133,47 @@ const Paginicial = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal de confirmação de exclusão */}
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <h3 className="text-xl font-semibold mb-4">Deseja realmente excluir este anúncio?</h3>
+            <div className="flex justify-between">
+              <button
+                onClick={() => setShowModal(false)}
+                className="bg-gray-500 text-white py-2 px-4 rounded"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => handleDelete(selectedAnuncio.id)}
+                className="bg-red-500 text-white py-2 px-4 rounded"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de sucesso ou erro */}
+      {successMessage && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div
+            className={`bg-${successMessage.includes('sucesso') ? 'green' : 'red'}-500 text-white p-6 rounded-lg shadow-lg max-w-sm w-full`}
+          >
+            <p>{successMessage}</p>
+            <button
+              onClick={() => setSuccessMessage('')}
+              className="mt-4 bg-white text-black py-2 px-4 rounded"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
   );
