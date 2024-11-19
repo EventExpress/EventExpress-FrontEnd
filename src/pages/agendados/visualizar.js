@@ -171,20 +171,6 @@ export default function Visualizaragendados() {
                             <p className="text-red-500">{errorMessage}</p>
                         ) : agendados.length > 0 ? (
                             <div>
-                                <form onSubmit={handleSearch} className="mb-4 flex">
-                                    <input
-                                        type="text"
-                                        name="search"
-                                        placeholder="Procurar agendado"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="border rounded-l-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                    />
-                                    <button type="submit" className="ml-3 bg-orange-500 hover:bg-orange-600 text-white px-4 rounded-md">
-                                        Buscar
-                                    </button>
-                                </form>
-
                                 {agendados.map((agendado) => {
                                     const anuncio = anuncios.find(a => a.id === agendado.anuncio_id);
                                     const locador = locadores.find(l => l.id === anuncio?.user_id);
@@ -239,14 +225,14 @@ export default function Visualizaragendados() {
 
                                             <div className="mt-4 flex justify-between">
                                             <button
-    onClick={() => {
-        console.log("Redirecionando para:", `/agendados/edit/${agendado.id}`);
-        router.push(`/agendados/edit?agendadoId=${agendado.id}`);
-    }}
-    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
->
-    Editar Reserva
-</button>
+                                                onClick={() => {
+                                                    console.log("Redirecionando para:", `/agendados/edit/${agendado.id}`);
+                                                    router.push(`/agendados/edit?agendadoId=${agendado.id}`);
+                                                }}
+                                                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+                                            >
+                                                Editar Reserva
+                                            </button>
                                                 <button
                                                     onClick={() => handleCancel(agendado.id)}
                                                     className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"

@@ -377,6 +377,14 @@ export default function CreateReserva() {
                                         <p className="mb-40">{anuncio.descricao}</p>
                                         <p><strong>Capacidade:</strong> {anuncio.capacidade} Pessoas</p>
                                         <p><strong>R$:</strong> {anuncio.valor}</p>
+                                        {anuncio.endereco && (
+                                            <div className="mt-2 text-gray-600">
+                                                <p>{anuncio.endereco.cidade ? `Cidade: ${anuncio.endereco.cidade}` : 'Cidade não disponível'}</p>
+                                                <p>{anuncio.endereco.bairro ? `Bairro: ${anuncio.endereco.bairro}` : 'Bairro não disponível'}</p>
+                                                <p>{anuncio.endereco.cep ? `CEP: ${anuncio.endereco.cep}` : 'CEP não disponível'}</p>
+                                                <p>{anuncio.endereco.numero ? `Número: ${anuncio.endereco.numero}` : 'Número não disponível'}</p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 ) : (
@@ -438,7 +446,16 @@ export default function CreateReserva() {
                                                                 <button type="button" onClick={() => handleServicosChange(servico.id)}
                                                                     className={`p-2 rounded-lg text-sm font-medium w-full ${
                                                                         servicosIds.includes(servico.id) ? "bg-orange-500 text-white" : "bg-gray-200 text-gray-700"}`}>
-                                                                    <span className="font-bold">{servico.titulo}</span>
+                                                                        <div className="flex flex-wrap justify-start space-x-4">
+                                                                            {servico.scategorias.map((scategoria) => (
+                                                                                <div
+                                                                                    key={scategoria.id}
+                                                                                    className="bg-gray-200 text-gray-700 px-4 py-2 rounded-full cursor-pointer hover:bg-orange-500 hover:text-white transition-all duration-300"
+                                                                                >
+                                                                                    {scategoria.titulo}
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
                                                                 </button>
                                                             </div>
                                                         </div>

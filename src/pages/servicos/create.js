@@ -13,9 +13,10 @@ const CriarServico = () => {
     const [agenda, setAgenda] = useState([]);
     const [cidade, setCidade] = useState('');
     const [bairro, setBairro] = useState('');
-    const [scategoriaId, setScategoriaId] = useState([]);
+    const [scategoriaId, setScategoriaId] = useState('');
     const [selectedDate, setSelectedDate] = useState('');
     const [checkboxOpen, setCheckboxOpen] = useState(false);
+    
 
     const toggleCheckboxes = () => {
         setCheckboxOpen(!checkboxOpen);
@@ -56,6 +57,8 @@ const CriarServico = () => {
         });
     };
 
+    
+
     const addDateToAgenda = (date) => {
         if (!agenda.includes(date)) {
             setAgenda(prevAgenda => [...prevAgenda, date]);
@@ -86,7 +89,7 @@ const CriarServico = () => {
                     descricao,
                     valor,
                     agenda,
-                    scategoriaId,
+                    scategoriaId: [scategoriaId],
                 },
                 {
                     headers: {
@@ -106,7 +109,7 @@ const CriarServico = () => {
     };
     
     const handleRadioChange = (id) => {
-        setCategoriaSelecionada(id);
+        setScategoriaId(id);  // Atualiza o estado para a categoria selecionada
     };
 
     return (
@@ -210,30 +213,24 @@ const CriarServico = () => {
                                     </button>
 
                                     {checkboxOpen && (
-                                        <div className="mt-4 bg-gray-800 border border-gray-500 rounded-md p-4 shadow-lg">
-                                            {categorias.length > 0 ? (
-                                                categorias.map((categoria) => (
-                                                    <div key={categoria.id} className="flex items-center space-x-2 mb-3">
-                                                        <input
-                                                            type="radio"
-                                                            id={`categoria-${categoria.id}`}
-                                                            name="categoria"
-                                                            checked={categoriaSelecionada === categoria.id}
-                                                            onChange={() => handleRadioChange(categoria.id)}
-                                                            className="rounded border-gray-300 text-orange-500 focus:ring-2 focus:ring-orange-500"
-                                                        />
-                                                        <label 
-                                                            htmlFor={`categoria-${categoria.id}`}
-                                                            className="text-white cursor-pointer"
-                                                        >
-                                                            {categoria.titulo}
-                                                        </label>
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                <div className="text-gray-400">Nenhuma categoria disponível.</div>
-                                            )}
+                                <div className="mb-4">
+                                <label className="text-orange-500">Categorias:</label>
+                                <div>
+                                    {categorias.map((categoria) => (
+                                        <div key={categoria.id} className="flex items-center space-x-2 mb-3">
+                                            <input
+                                                type="radio"
+                                                name="categoria"  // Adiciona o mesmo 'name' para garantir exclusividade na seleção
+                                                checked={scategoriaId === categoria.id}  // Apenas a categoria selecionada terá 'checked'
+                                                onChange={() => handleRadioChange(categoria.id)}  // Substitui o valor de 'scategoriaId'
+                                                className="rounded border-gray-300 text-orange-500 focus:ring-2 focus:ring-orange-500"
+                                            />
+                                            <label className="text-white">{categoria.titulo}</label>
                                         </div>
+                                    ))}
+                                </div>
+
+                            </div>
                                     )}
                                 </div>
                                 <button

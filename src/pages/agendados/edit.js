@@ -35,8 +35,7 @@ export default function EditarAgendado() {
     const [servicosData, setServicosData] = useState({});
 
     const handleSelectPayment = (paymentMethod) => {
-        setSelectedPaymentMethod(paymentMethod);
-        closeModal(); 
+        setFormaPagamento(paymentMethod);
     };
 
     const handleDataInicioGeneralChange = (date) => {
@@ -193,7 +192,6 @@ export default function EditarAgendado() {
         updatedData.horaInicio = horaInicio;
         updatedData.dataFim = format(dataFim, 'yyyy-MM-dd');
         updatedData.horaFim = horaFim;
-        updatedData.servicosIds = servicosIds;
     
         try {
             await axios.put(`http://localhost:8000/api/agendados/${agendadoId}`, updatedData, {
@@ -209,6 +207,7 @@ export default function EditarAgendado() {
             setErrorMessage('Erro ao atualizar agendamento.');
         }
     };
+
     
 
     return (

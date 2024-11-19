@@ -133,7 +133,10 @@ const NavBar = () => {
                                             {userType === 'Locador' && (
                                                 <>
                                                     <Link href="/anuncios/meus-anuncios" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                                        Meus Anúncios
+                                                        Ver Reservas
+                                                    </Link>
+                                                    <Link href="/anuncios/reservas" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                        Meus Anuncios
                                                     </Link>
                                                     <Link href="/anuncios/create" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                         Criar Anúncio
@@ -141,6 +144,7 @@ const NavBar = () => {
                                                     <Link href="/anuncios/relatorios" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                         Relatórios
                                                     </Link>
+
                                                 </>
                                             )}
                                             {userType === 'Prestador' && (
@@ -154,8 +158,18 @@ const NavBar = () => {
                                                     <Link href="/servicos/relatorios" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                         Relatórios
                                                     </Link>
+                                                    <Link href="/servicos/reservas" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                        Ver Reservas
+                                                    </Link>
                                                 </>
                                             )}
+                                                        {userType === 'Admin' && (
+                                                            <>
+                                                                <Link href="/admin/gerenciaranuncio" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                                    Gerenciar Anúncios
+                                                                </Link>
+                                                            </>
+                                                        )}
                                             <button
                                                 onClick={handleLogout}
                                                 className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -186,7 +200,7 @@ const NavBar = () => {
 
                                 {userTypeDropdown && (
                                     <div ref={dropdownRef} className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-10">
-                                        {['Locatário', 'Locador', 'Prestador'].map((type) => (
+                                        {['Locatário', 'Locador', 'Prestador','Admin'].map((type) => (
                                             <button
                                                 key={type}
                                                 onClick={() => handleUserTypeChange(type)}

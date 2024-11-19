@@ -114,7 +114,6 @@ const Paginicial = () => {
   
     fetchAnuncios();
   }, [selectedCategory, router]);
-  
 
   const indexOfLastAnuncio = currentPage * anunciosPerPage;
   const indexOfFirstAnuncio = indexOfLastAnuncio - anunciosPerPage;
@@ -135,7 +134,7 @@ const Paginicial = () => {
       );
     }
     return stars;
-  };  
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -189,35 +188,58 @@ const Paginicial = () => {
                       <h2 className="text-xl font-bold">{anuncio.titulo || 'Título não disponível'}</h2>
                       <p className="text-gray-700">{anuncio.descricao ? `${anuncio.descricao.slice(0, 50)}${anuncio.descricao.length > 50 ? '...' : ''}` : 'Descrição não disponível'}</p>
                       <p className="text-lg font-semibold text-orange-500"> {anuncio.valor ? `R$${anuncio.valor} ` : 'Valor não disponível'} </p>
-                    
-                        <div className="flex items-center">
-                          {renderStars(anuncio.media_avaliacoes)}
-                        </div>
+
+                      <div className="flex items-center">
+                        {renderStars(anuncio.media_avaliacoes)}
+                      </div>
 
                       {anuncio.imagens && anuncio.imagens.length > 0 ? (
-                        <img src={anuncio.imagens[0].image_path} alt={anuncio.titulo} className="w-full h-32 object-cover mt-2"
+                        <img
+                          src={anuncio.imagens[0].image_path}
+                          alt={anuncio.titulo}
+                          className="w-full h-32 object-cover mt-2"
                           onError={(e) => {
                             e.target.onerror = null;
                             e.target.src = 'https://via.placeholder.com/150';
-                          }}/>
+                          }}
+                        />
                       ) : (
                         <p className="text-gray-500">Imagem não disponível</p>
                       )}
-                      <p className="text-gray-600 mt-2">Capacidade: {anuncio.capacidade || 'Capacidade não disponível'}</p>
+
+                      <div className="mt-2">
+                        <p className="text-gray-600 mt-2">Capacidade: {anuncio.capacidade || 'Capacidade não disponível'}</p>
+                      </div>
+
+                      {anuncio.endereco && (
+                        <div className="mt-2 text-gray-600">
+                          <p>{anuncio.endereco.cidade ? `Cidade: ${anuncio.endereco.cidade}` : 'Cidade não disponível'}</p>
+                          <p>{anuncio.endereco.bairro ? `Bairro: ${anuncio.endereco.bairro}` : 'Bairro não disponível'}</p>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
-                <div className="flex justify-center mt-6">
-                  <button onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1} className="px-4 py-2 text-white bg-blue-500 rounded-md">
+                {/* Paginação */}
+                <div className="mt-6 flex justify-center">
+                  <button
+                    onClick={() => setCurrentPage(prevPage => Math.max(prevPage - 1, 1))}
+                    className="px-4 py-2 mx-2 bg-gray-300 text-gray-800 rounded-md"
+                    disabled={currentPage === 1}
+                  >
                     Anterior
                   </button>
-                  <button onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage * anunciosPerPage >= anuncios.length} className="ml-4 px-4 py-2 text-white bg-blue-500 rounded-md">
-                    Próxima
+                  <button
+                    onClick={() => setCurrentPage(prevPage => Math.min(prevPage + 1, Math.ceil(anuncios.length / anunciosPerPage)))}
+                    className="px-4 py-2 mx-2 bg-gray-300 text-gray-800 rounded-md"
+                    disabled={currentPage === Math.ceil(anuncios.length / anunciosPerPage)}
+                  >
+                    Próximo
                   </button>
                 </div>
               </div>
             ) : (
-              <p>Não há anúncios para exibir.</p>
+              <p className="text-gray-500">Nenhum anúncio encontrado.</p>
             )}
           </div>
         </div>
