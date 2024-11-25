@@ -77,7 +77,7 @@ export default function Visualizaragendados() {
             if (!token) {
                 throw new Error('Token não encontrado.');
             }
-            const anuncioIds = agendados.map(agendado => agendado.anuncio.id);
+            const anuncioIds = agendados.map(agendado => agendado.anuncio?.id); // Verifique se o anuncio existe
             const response = await axios.get('http://localhost:8000/api/anuncios', {
                 params: { ids: anuncioIds },
                 headers: {
@@ -125,10 +125,10 @@ export default function Visualizaragendados() {
             console.error('Erro ao buscar locadores:', error);
         }
     };
+
     const handleAvaliar = (agendado_id) => {
         router.push(`/avaliacao?agendadoId=${agendado_id}&tipoUsuario=Locatario`);
     };
-    
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -147,8 +147,8 @@ export default function Visualizaragendados() {
                         ) : agendados.length > 0 ? (
                             <div>
                                 {agendados.map((agendado) => {
-                                    const anuncio = anuncios.find(a => a.id === agendado.anuncio.id);
-                                    const locador = locadores.find(l => l.id === anuncio?.user_id);
+                                    const anuncio = anuncios.find(a => a.id === agendado.anuncio?.id); // Verifique se o anuncio existe
+                                    const locador = locadores.find(l => l.id === anuncio?.user_id); // Verifique se o locador existe
 
                                     const servico = agendado.servicos || [];
 
